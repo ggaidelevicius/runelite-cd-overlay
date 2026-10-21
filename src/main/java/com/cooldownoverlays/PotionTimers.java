@@ -1,7 +1,9 @@
 package com.cooldownoverlays;
 
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.gameval.VarbitID;
@@ -11,6 +13,7 @@ import net.runelite.api.gameval.VarbitID;
 final class PotionTimers
 {
 	private final Map<PotionEffect, State> states = new EnumMap<>(PotionEffect.class);
+	private final Set<PotionEffect> pendingConfirmedUses = EnumSet.noneOf(PotionEffect.class);
 	private boolean initialized;
 	private int tickCount;
 	private boolean liquidAdrenalineDose;
@@ -41,6 +44,21 @@ final class PotionTimers
 		liquidAdrenalineDose = true;
 	}
 
+	void onConfirmedUse(PotionEffect effect, long nowNanos)
+	{
+		if (!effect.isConfirmedUseEffect())
+		{
+			throw new IllegalArgumentException("Effect does not use a confirmed-use timer: " + effect);
+		}
+		State state = states.get(effect);
+		state.available = true;
+		state.cooldown.start(effect.getStandardTicks(), effect.getStandardTicks(), nowNanos);
+		state.knownUntilTick = tickCount + effect.getStandardTicks();
+		// The next sample belongs to this message's server batch. Start that sample
+		// at full duration instead of prematurely deducting one game tick.
+		pendingConfirmedUses.add(effect);
+	}
+
 	void initialize(Map<PotionEffect, Integer> samples, long nowNanos)
 	{
 		initialize(samples, 1, nowNanos);
@@ -48,11 +66,21 @@ final class PotionTimers
 
 	void initialize(Map<PotionEffect, Integer> samples, int prayerEnhanceRate, long nowNanos)
 	{
+		Set<PotionEffect> pendingUses = EnumSet.noneOf(PotionEffect.class);
+		pendingUses.addAll(pendingConfirmedUses);
 		clear();
+		pendingConfirmedUses.addAll(pendingUses);
 		initialized = true;
 		for (PotionEffect effect : PotionEffect.values())
 		{
-			update(effect, samples.getOrDefault(effect, 0), bucketTicks(effect, prayerEnhanceRate), nowNanos, true);
+			if (effect.isConfirmedUseEffect())
+			{
+				updateConfirmedUse(effect, nowNanos);
+			}
+			else
+			{
+				update(effect, samples.getOrDefault(effect, 0), bucketTicks(effect, prayerEnhanceRate), nowNanos, true);
+			}
 		}
 	}
 
@@ -79,6 +107,11 @@ final class PotionTimers
 		tickCount++;
 		for (PotionEffect effect : PotionEffect.values())
 		{
+			if (effect.isConfirmedUseEffect())
+			{
+				updateConfirmedUse(effect, nowNanos);
+				continue;
+			}
 			int rawValue = samples.getOrDefault(effect, 0);
 			int buckets = effect.remainingBuckets(rawValue);
 			int bucketTicks = bucketTicks(effect, prayerEnhanceRate);
@@ -88,6 +121,28 @@ final class PotionTimers
 			update(effect, rawValue, bucketTicks, nowNanos, false);
 		}
 		liquidAdrenalineDose = false;
+	}
+
+	private void updateConfirmedUse(PotionEffect effect, long nowNanos)
+	{
+		State state = states.get(effect);
+		if (pendingConfirmedUses.remove(effect))
+		{
+			state.available = true;
+			state.cooldown.start(effect.getStandardTicks(), effect.getStandardTicks(), nowNanos);
+			state.knownUntilTick = tickCount + effect.getStandardTicks();
+		}
+		else if (state.cooldown.isActive())
+		{
+			if (tickCount >= state.knownUntilTick)
+			{
+				state.cooldown.setReady(nowNanos);
+			}
+			else
+			{
+				state.cooldown.tick(nowNanos);
+			}
+		}
 	}
 
 	private void update(PotionEffect effect, int rawValue, int bucketTicks, long nowNanos, boolean initial)
@@ -167,6 +222,19 @@ final class PotionTimers
 		tickCount = 0;
 		initialized = false;
 		liquidAdrenalineDose = false;
+		pendingConfirmedUses.clear();
+	}
+
+	void clearOnDeath()
+	{
+		for (PotionEffect effect : PotionEffect.values())
+		{
+			if (effect.isConfirmedUseEffect())
+			{
+				clear(states.get(effect));
+				pendingConfirmedUses.remove(effect);
+			}
+		}
 	}
 
 	Cooldown get(PotionEffect effect)

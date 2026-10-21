@@ -160,6 +160,36 @@ public class BoostPotionClientTest
 		}
 	}
 
+	@Test
+	public void moonlightDefenceMarkerDoesNotHideUsefulOrdinaryPotions()
+	{
+		varbits.put(VarbitID.MOONLIGHT_POTION_TIME, 499);
+		varbits.put(VarbitID.DIVINEDEFENCE_POTION_TIME, 500);
+		timers.tick(client, config, 0);
+		assertTrue(timers.get(BoostPotion.SUPER_DEFENCE).isReady());
+		assertTrue(timers.get(BoostPotion.DEFENCE).isReady());
+
+		varbits.put(VarbitID.DIVINEDEFENCE_POTION_TIME, 700);
+		timers.tick(client, config, Cooldown.TICK_NANOS);
+		assertFalse(timers.get(BoostPotion.SUPER_DEFENCE).isReady());
+		assertFalse(timers.get(BoostPotion.SUPER_DEFENCE).isActive());
+	}
+
+	@Test
+	public void naturalDefenceDecayUnderMoonlightCanTeachTheSharedPhase()
+	{
+		varbits.put(VarbitID.MOONLIGHT_POTION_TIME, 500);
+		varbits.put(VarbitID.DIVINEDEFENCE_POTION_TIME, 500);
+		levels.put(Skill.DEFENCE, 119);
+		timers.tick(client, config, 0);
+		levels.put(Skill.DEFENCE, 118);
+		tick = 100;
+		timers.tick(client, config, tick * Cooldown.TICK_NANOS);
+		assertTrue(timers.get(BoostPotion.SUPER_DEFENCE).isKnown());
+		assertEquals(960, timers.get(BoostPotion.SUPER_DEFENCE)
+			.getRemainingSeconds(tick * Cooldown.TICK_NANOS), 0.00001);
+	}
+
 	private void assertAllUnavailable()
 	{
 		for (BoostPotion potion : BoostPotion.values())

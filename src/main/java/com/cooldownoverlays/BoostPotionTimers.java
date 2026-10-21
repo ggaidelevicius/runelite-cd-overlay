@@ -177,7 +177,14 @@ final class BoostPotionTimers
 		}
 		protect(client, protectedSkills, VarbitID.DIVINEATTACK_POTION_TIME, Skill.ATTACK);
 		protect(client, protectedSkills, VarbitID.DIVINESTRENGTH_POTION_TIME, Skill.STRENGTH);
-		protect(client, protectedSkills, VarbitID.DIVINEDEFENCE_POTION_TIME, Skill.DEFENCE);
+		int divineDefence = client.getVarbitValue(VarbitID.DIVINEDEFENCE_POTION_TIME);
+		int moonlight = client.getVarbitValue(VarbitID.MOONLIGHT_POTION_TIME);
+		// Moonlight shares the divine Defence marker but allows natural stat decay.
+		// A genuinely longer divine effect still protects Defence from decay.
+		if (divineDefence > 0 && (moonlight <= 0 || divineDefence > moonlight + 1))
+		{
+			protectedSkills.add(Skill.DEFENCE);
+		}
 		protect(client, protectedSkills, VarbitID.DIVINERANGE_POTION_TIME, Skill.RANGED);
 		protect(client, protectedSkills, VarbitID.DIVINEMAGIC_POTION_TIME, Skill.MAGIC);
 		protect(client, protectedSkills, VarbitID.DIVINECOMBAT_POTION_TIME, Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE);

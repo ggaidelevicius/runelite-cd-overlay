@@ -27,13 +27,15 @@ public class PotionTimersTest
 		for (PotionEffect effect : PotionEffect.values())
 		{
 			assertFalse(timers.get(effect).isActive());
-			assertTrue(timers.get(effect).isReady());
-			assertEquals(0, timers.get(effect).getFinishedAgeSeconds(START), DELTA);
+			assertEquals(!effect.isConfirmedUseEffect(), timers.get(effect).isReady());
+			assertEquals(effect.isConfirmedUseEffect() ? -1 : 0,
+				timers.get(effect).getFinishedAgeSeconds(START), DELTA);
 		}
 		timers.tick(new EnumMap<>(PotionEffect.class), atTick(1));
 		for (PotionEffect effect : PotionEffect.values())
 		{
-			assertEquals(0.6, timers.get(effect).getFinishedAgeSeconds(atTick(1)), DELTA);
+			assertEquals(effect.isConfirmedUseEffect() ? -1 : 0.6,
+				timers.get(effect).getFinishedAgeSeconds(atTick(1)), DELTA);
 		}
 	}
 

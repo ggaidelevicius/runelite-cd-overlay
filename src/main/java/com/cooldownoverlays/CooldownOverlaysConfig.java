@@ -522,6 +522,126 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "antipoison", name = "Antipoison",
+		description = "Show poison immunity on antipoison doses and mixes",
+		position = 17, section = potionEffectsSection
+	)
+	default boolean antipoison()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "superAntipoison", name = "Superantipoison",
+		description = "Show poison immunity on superantipoison doses and mixes",
+		position = 18, section = potionEffectsSection
+	)
+	default boolean superAntipoison()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "antidotePlus", name = "Antidote+",
+		description = "Show poison immunity on antidote+ doses and mixes",
+		position = 19, section = potionEffectsSection
+	)
+	default boolean antidotePlus()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "antidotePlusPlus", name = "Antidote++",
+		description = "Show poison immunity on antidote++ doses",
+		position = 20, section = potionEffectsSection
+	)
+	default boolean antidotePlusPlus()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "sanfewSerum", name = "Sanfew serum",
+		description = "Show poison immunity on Sanfew serum doses",
+		position = 21, section = potionEffectsSection
+	)
+	default boolean sanfewSerum()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "goadingPotion", name = "Goading potion",
+		description = "Show the remaining goading effect on every dose",
+		position = 22, section = potionEffectsSection
+	)
+	default boolean goadingPotion()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "menaphiteRemedy", name = "Menaphite remedy",
+		description = "Show the remaining periodic stat restoration effect on every dose",
+		position = 23, section = potionEffectsSection
+	)
+	default boolean menaphiteRemedy()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "moonlightPotion", name = "Moonlight potion",
+		description = "Show the remaining Moonlight potion effect on every dose",
+		position = 24, section = potionEffectsSection
+	)
+	default boolean moonlightPotion()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "prayerRegenerationPotion", name = "Prayer regeneration",
+		description = "Show the remaining prayer regeneration effect on every dose",
+		position = 25, section = potionEffectsSection
+	)
+	default boolean prayerRegenerationPotion()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "nmzOverload", name = "Nightmare Zone overload",
+		description = "Show the Nightmare Zone overload effect on every dose",
+		position = 26, section = potionEffectsSection
+	)
+	default boolean nmzOverload()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "blightedOverload", name = "Blighted overload",
+		description = "Show the blighted overload effect on every dose",
+		position = 27, section = potionEffectsSection
+	)
+	default boolean blightedOverload()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "scarredScraps", name = "Scarred scraps",
+		description = "Show the stamina effect on Scarred scraps",
+		position = 28, section = potionEffectsSection
+	)
+	default boolean scarredScraps()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "weakOverload", name = "Overload (-)",
 		description = "Show the Chambers overload effect time on weak overload doses",
 		position = 0, section = raidPotionsSection
@@ -597,6 +717,56 @@ public interface CooldownOverlaysConfig extends Config
 		position = 7, section = raidPotionsSection
 	)
 	default boolean liquidAdrenaline()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "silkDressing", name = "Silk dressing",
+		description = "Show the remaining healing effect on both silk dressings",
+		position = 8, section = raidPotionsSection
+	)
+	default boolean silkDressing()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "blessedCrystalScarab", name = "Blessed crystal scarab",
+		description = "Show the remaining prayer restoration effect on both scarabs",
+		position = 9, section = raidPotionsSection
+	)
+	default boolean blessedCrystalScarab()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "weakRaidAntipoison", name = "Chambers antipoison (-)",
+		description = "Show poison immunity on weak Chambers antipoison doses",
+		position = 10, section = raidPotionsSection
+	)
+	default boolean weakRaidAntipoison()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "raidAntipoison", name = "Chambers antipoison",
+		description = "Show poison immunity on regular Chambers antipoison doses",
+		position = 11, section = raidPotionsSection
+	)
+	default boolean raidAntipoison()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "strongRaidAntipoison", name = "Chambers antipoison (+)",
+		description = "Show poison immunity on strong Chambers antipoison doses",
+		position = 12, section = raidPotionsSection
+	)
+	default boolean strongRaidAntipoison()
 	{
 		return true;
 	}

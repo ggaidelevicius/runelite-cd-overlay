@@ -1,5 +1,6 @@
 package com.cooldownoverlays;
 
+import java.util.EnumSet;
 import net.runelite.api.gameval.ItemID;
 import org.junit.Test;
 
@@ -91,6 +92,97 @@ public class PotionItemsTest
 	}
 
 	@Test
+	public void poisonProtectionIncludesEveryOrdinaryDoseAndAvailableMix()
+	{
+		assertFamily(Family.ANTIPOISON, PotionEffect.ANTIPOISON,
+			ItemID._4DOSEANTIPOISON, ItemID._3DOSEANTIPOISON, ItemID._2DOSEANTIPOISON, ItemID._1DOSEANTIPOISON,
+			ItemID.BRUTAL_2DOSEANTIPOISON, ItemID.BRUTAL_1DOSEANTIPOISON);
+		assertFamily(Family.SUPER_ANTIPOISON, PotionEffect.ANTIPOISON,
+			ItemID._4DOSE2ANTIPOISON, ItemID._3DOSE2ANTIPOISON, ItemID._2DOSE2ANTIPOISON, ItemID._1DOSE2ANTIPOISON,
+			ItemID.BRUTAL_2DOSE2ANTIPOISON, ItemID.BRUTAL_1DOSE2ANTIPOISON);
+		assertFamily(Family.ANTIDOTE_PLUS, PotionEffect.ANTIPOISON,
+			ItemID.ANTIDOTE_4, ItemID.ANTIDOTE_3, ItemID.ANTIDOTE_2, ItemID.ANTIDOTE_1,
+			ItemID.BRUTAL_ANTIDOTE_2, ItemID.BRUTAL_ANTIDOTE_1);
+		assertFamily(Family.ANTIDOTE_PLUS_PLUS, PotionEffect.ANTIPOISON,
+			ItemID.ANTIDOTE__4, ItemID.ANTIDOTE__3, ItemID.ANTIDOTE__2, ItemID.ANTIDOTE__1);
+	}
+
+	@Test
+	public void sanfewSerumIncludesStandardAndBountyHunterSupplies()
+	{
+		assertFamily(Family.SANFEW_SERUM, PotionEffect.ANTIPOISON,
+			ItemID.SANFEW_SALVE_4_DOSE, ItemID.SANFEW_SALVE_3_DOSE,
+			ItemID.SANFEW_SALVE_2_DOSE, ItemID.SANFEW_SALVE_1_DOSE,
+			ItemID.BR_SANFEW_SALVE_4_DOSE, ItemID.BR_SANFEW_SALVE_3_DOSE,
+			ItemID.BR_SANFEW_SALVE_2_DOSE, ItemID.BR_SANFEW_SALVE_1_DOSE);
+	}
+
+	@Test
+	public void chambersAntipoisonTiersSharePoisonProtectionAcrossEveryDose()
+	{
+		assertFamily(Family.WEAK_RAID_ANTIPOISON, PotionEffect.ANTIPOISON,
+			ItemID.RAIDS_VIAL_ANTIPOISON_WEAK_4, ItemID.RAIDS_VIAL_ANTIPOISON_WEAK_3,
+			ItemID.RAIDS_VIAL_ANTIPOISON_WEAK_2, ItemID.RAIDS_VIAL_ANTIPOISON_WEAK_1);
+		assertFamily(Family.RAID_ANTIPOISON, PotionEffect.ANTIPOISON,
+			ItemID.RAIDS_VIAL_ANTIPOISON_4, ItemID.RAIDS_VIAL_ANTIPOISON_3,
+			ItemID.RAIDS_VIAL_ANTIPOISON_2, ItemID.RAIDS_VIAL_ANTIPOISON_1);
+		assertFamily(Family.STRONG_RAID_ANTIPOISON, PotionEffect.ANTIPOISON,
+			ItemID.RAIDS_VIAL_ANTIPOISON_STRONG_4, ItemID.RAIDS_VIAL_ANTIPOISON_STRONG_3,
+			ItemID.RAIDS_VIAL_ANTIPOISON_STRONG_2, ItemID.RAIDS_VIAL_ANTIPOISON_STRONG_1);
+	}
+
+	@Test
+	public void newlySupportedTimedPotionsKeepOverlaysAcrossAllDoses()
+	{
+		assertFamily(Family.GOADING, PotionEffect.GOADING,
+			ItemID._4DOSEGOADING, ItemID._3DOSEGOADING, ItemID._2DOSEGOADING, ItemID._1DOSEGOADING);
+		assertFamily(Family.MENAPHITE_REMEDY, PotionEffect.MENAPHITE_REMEDY,
+			ItemID._4DOSESTATRENEWAL, ItemID._3DOSESTATRENEWAL, ItemID._2DOSESTATRENEWAL, ItemID._1DOSESTATRENEWAL);
+		assertFamily(Family.MOONLIGHT, PotionEffect.MOONLIGHT,
+			ItemID._4DOSEMOONLIGHTPOTION, ItemID._3DOSEMOONLIGHTPOTION,
+			ItemID._2DOSEMOONLIGHTPOTION, ItemID._1DOSEMOONLIGHTPOTION);
+		assertFamily(Family.PRAYER_REGENERATION, PotionEffect.PRAYER_REGENERATION,
+			ItemID._4DOSE1PRAYER_REGENERATION, ItemID._3DOSE1PRAYER_REGENERATION,
+			ItemID._2DOSE1PRAYER_REGENERATION, ItemID._1DOSE1PRAYER_REGENERATION);
+	}
+
+	@Test
+	public void nightmareZoneAndBlightedOverloadsUseTheirOwnEffects()
+	{
+		assertFamily(Family.NMZ_OVERLOAD, PotionEffect.NMZ_OVERLOAD,
+			ItemID.NZONE4DOSEOVERLOADPOTION, ItemID.NZONE3DOSEOVERLOADPOTION,
+			ItemID.NZONE2DOSEOVERLOADPOTION, ItemID.NZONE1DOSEOVERLOADPOTION);
+		assertFamily(Family.BLIGHTED_OVERLOAD, PotionEffect.BLIGHTED_OVERLOAD,
+			ItemID.DEADMAN4DOSEOVERLOAD, ItemID.DEADMAN3DOSEOVERLOAD,
+			ItemID.DEADMAN2DOSEOVERLOAD, ItemID.DEADMAN1DOSEOVERLOAD);
+	}
+
+	@Test
+	public void bothUsesOfTimedTombsSuppliesShareTheirMatchingEffect()
+	{
+		assertFamily(Family.SILK_DRESSING, PotionEffect.SILK_DRESSING,
+			ItemID.TOA_SUPPLY_HEAL_OVERTIME_2, ItemID.TOA_SUPPLY_HEAL_OVERTIME_1);
+		assertFamily(Family.BLESSED_CRYSTAL_SCARAB, PotionEffect.BLESSED_CRYSTAL_SCARAB,
+			ItemID.TOA_SUPPLY_PRAYER_OVERTIME_2, ItemID.TOA_SUPPLY_PRAYER_OVERTIME_1);
+	}
+
+	@Test
+	public void scarredScrapsShareTheStaminaEffectWithTheirOwnSetting()
+	{
+		assertFamily(Family.SCARRED_SCRAPS, PotionEffect.STAMINA, ItemID.DT2_SCAR_MAZE_STAMINA);
+		CooldownOverlaysConfig config = new CooldownOverlaysConfig()
+		{
+			@Override
+			public boolean staminaPotion()
+			{
+				return false;
+			}
+		};
+		assertFalse(Family.STAMINA.isEnabled(config));
+		assertTrue(Family.SCARRED_SCRAPS.isEnabled(config));
+	}
+
+	@Test
 	public void divinePotionsUseTheirOwnEffectForEveryDose()
 	{
 		assertFamily(Family.DIVINE_ATTACK, PotionEffect.DIVINE_ATTACK,
@@ -118,11 +210,12 @@ public class PotionItemsTest
 	{
 		int[] unrelated = {
 			-1, ItemID.IMBUED_HEART, ItemID.BLIGHTED_SACK_SURGE,
-			ItemID._4DOSE2ATTACK, ItemID._4DOSEANTIPOISON,
+			ItemID._4DOSE2ATTACK, ItemID.RATCATCHERS_CAT_ANTIPOISON,
 			ItemID.Cert._4DOSESURGE, ItemID.Placeholder._4DOSESURGE,
 			ItemID.Cert._4DOSESTAMINA, ItemID.Placeholder._4DOSESTAMINA,
 			ItemID.Cert._4DOSEDIVINECOMBAT, ItemID.Placeholder._4DOSEDIVINECOMBAT,
-			ItemID.NZONE4DOSEOVERLOADPOTION, ItemID.DEADMAN4DOSEOVERLOAD,
+			ItemID.UNFINISHED_ANTIDOTE_, ItemID.UNFINISHED_ANTIDOTE__,
+			ItemID.SANFEW_SALVE_STEP_1_4_DOSE, ItemID.SANFEW_SALVE_STEP_2_4_DOSE,
 			ItemID.TOA_SUPPLY_PANICHEAL_2, ItemID.TOA_SUPPLY_PANICHEAL_1,
 			ItemID.Cert.TOA_SUPPLY_STATS_2, ItemID.Cert.TOA_SUPPLY_ENERGY_2
 		};
@@ -130,6 +223,48 @@ public class PotionItemsTest
 		{
 			assertNull("family for " + itemId, PotionItems.getFamily(itemId));
 			assertNull("effect for " + itemId, PotionItems.getEffect(itemId));
+		}
+	}
+
+	@Test
+	public void newEffectPotionNotesAndPlaceholdersDoNotReceiveOverlays()
+	{
+		int[] nonUsable = {
+			ItemID.Cert._4DOSEANTIPOISON, ItemID.Placeholder._4DOSEANTIPOISON,
+			ItemID.Cert._4DOSE2ANTIPOISON, ItemID.Placeholder._4DOSE2ANTIPOISON,
+			ItemID.Cert.ANTIDOTE_4, ItemID.Placeholder.ANTIDOTE_4,
+			ItemID.Cert.ANTIDOTE__4, ItemID.Placeholder.ANTIDOTE__4,
+			ItemID.Cert.SANFEW_SALVE_4_DOSE, ItemID.Placeholder.SANFEW_SALVE_4_DOSE,
+			ItemID.Cert._4DOSEGOADING, ItemID.Placeholder._4DOSEGOADING,
+			ItemID.Cert._4DOSE1PRAYER_REGENERATION, ItemID.Placeholder._4DOSE1PRAYER_REGENERATION,
+			ItemID.Cert._4DOSESTATRENEWAL, ItemID.Placeholder._4DOSESTATRENEWAL,
+			ItemID.Cert.DEADMAN4DOSEOVERLOAD, ItemID.Placeholder.DEADMAN4DOSEOVERLOAD,
+			ItemID.Placeholder.NZONE4DOSEOVERLOADPOTION,
+			ItemID.Cert.TOA_SUPPLY_HEAL_OVERTIME_2, ItemID.Cert.TOA_SUPPLY_PRAYER_OVERTIME_2
+		};
+		for (int itemId : nonUsable)
+		{
+			assertNull("family for " + itemId, PotionItems.getFamily(itemId));
+			assertNull("effect for " + itemId, PotionItems.getEffect(itemId));
+		}
+	}
+
+	@Test
+	public void everyNewFamilyHasAnIndependentToggleEvenWhenItSharesAnEffect()
+	{
+		for (Family disabled : EnumSet.of(Family.ANTIPOISON, Family.SUPER_ANTIPOISON,
+			Family.ANTIDOTE_PLUS, Family.ANTIDOTE_PLUS_PLUS, Family.SANFEW_SERUM,
+			Family.WEAK_RAID_ANTIPOISON, Family.RAID_ANTIPOISON, Family.STRONG_RAID_ANTIPOISON,
+			Family.GOADING, Family.MENAPHITE_REMEDY, Family.MOONLIGHT, Family.PRAYER_REGENERATION,
+			Family.NMZ_OVERLOAD, Family.BLIGHTED_OVERLOAD, Family.SILK_DRESSING,
+			Family.BLESSED_CRYSTAL_SCARAB, Family.SCARRED_SCRAPS))
+		{
+			CooldownOverlaysConfig config = newFamilyConfig(disabled);
+			for (Family family : Family.values())
+			{
+				assertEquals("Disabling " + disabled + " must only affect that family: " + family,
+					family != disabled, family.isEnabled(config));
+			}
 		}
 	}
 
@@ -191,6 +326,114 @@ public class PotionItemsTest
 				assertTrue(family.name(), family.isEnabled(config));
 			}
 		}
+	}
+
+	private static CooldownOverlaysConfig newFamilyConfig(Family disabled)
+	{
+		return new CooldownOverlaysConfig()
+		{
+			@Override
+			public boolean antipoison()
+			{
+				return disabled != Family.ANTIPOISON;
+			}
+
+			@Override
+			public boolean superAntipoison()
+			{
+				return disabled != Family.SUPER_ANTIPOISON;
+			}
+
+			@Override
+			public boolean antidotePlus()
+			{
+				return disabled != Family.ANTIDOTE_PLUS;
+			}
+
+			@Override
+			public boolean antidotePlusPlus()
+			{
+				return disabled != Family.ANTIDOTE_PLUS_PLUS;
+			}
+
+			@Override
+			public boolean sanfewSerum()
+			{
+				return disabled != Family.SANFEW_SERUM;
+			}
+
+			@Override
+			public boolean weakRaidAntipoison()
+			{
+				return disabled != Family.WEAK_RAID_ANTIPOISON;
+			}
+
+			@Override
+			public boolean raidAntipoison()
+			{
+				return disabled != Family.RAID_ANTIPOISON;
+			}
+
+			@Override
+			public boolean strongRaidAntipoison()
+			{
+				return disabled != Family.STRONG_RAID_ANTIPOISON;
+			}
+
+			@Override
+			public boolean goadingPotion()
+			{
+				return disabled != Family.GOADING;
+			}
+
+			@Override
+			public boolean menaphiteRemedy()
+			{
+				return disabled != Family.MENAPHITE_REMEDY;
+			}
+
+			@Override
+			public boolean moonlightPotion()
+			{
+				return disabled != Family.MOONLIGHT;
+			}
+
+			@Override
+			public boolean prayerRegenerationPotion()
+			{
+				return disabled != Family.PRAYER_REGENERATION;
+			}
+
+			@Override
+			public boolean nmzOverload()
+			{
+				return disabled != Family.NMZ_OVERLOAD;
+			}
+
+			@Override
+			public boolean blightedOverload()
+			{
+				return disabled != Family.BLIGHTED_OVERLOAD;
+			}
+
+			@Override
+			public boolean silkDressing()
+			{
+				return disabled != Family.SILK_DRESSING;
+			}
+
+			@Override
+			public boolean blessedCrystalScarab()
+			{
+				return disabled != Family.BLESSED_CRYSTAL_SCARAB;
+			}
+
+			@Override
+			public boolean scarredScraps()
+			{
+				return disabled != Family.SCARRED_SCRAPS;
+			}
+		};
 	}
 
 	private static void assertFamily(Family family, PotionEffect effect, int... itemIds)

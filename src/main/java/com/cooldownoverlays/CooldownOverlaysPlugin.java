@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -27,6 +28,8 @@ public class CooldownOverlaysPlugin extends Plugin
 {
 	private static final String LIQUID_ADRENALINE_MESSAGE =
 		"You drink some of the potion, reducing the energy cost of your special attacks.";
+	private static final String SILK_DRESSING_MESSAGE = "You quickly apply the dressing to your wounds.";
+	private static final String BLESSED_CRYSTAL_SCARAB_MESSAGE = "You crack the crystal in your hand.";
 
 	@Inject
 	private Client client;
@@ -114,12 +117,33 @@ public class CooldownOverlaysPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (running && client.getGameState() == GameState.LOGGED_IN
-			&& (event.getType() == ChatMessageType.GAMEMESSAGE || event.getType() == ChatMessageType.SPAM)
-			&& LIQUID_ADRENALINE_MESSAGE.equals(Text.removeTags(event.getMessage())))
+		if (!running || client.getGameState() != GameState.LOGGED_IN
+			|| (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM))
+		{
+			return;
+		}
+		String message = Text.removeTags(event.getMessage());
+		if (LIQUID_ADRENALINE_MESSAGE.equals(message))
 		{
 			// A successful second dose can refresh adrenaline without toggling its active flag.
 			potionTimers.onLiquidAdrenalineDose();
+		}
+		else if (SILK_DRESSING_MESSAGE.equals(message))
+		{
+			potionTimers.onConfirmedUse(PotionEffect.SILK_DRESSING, System.nanoTime());
+		}
+		else if (BLESSED_CRYSTAL_SCARAB_MESSAGE.equals(message))
+		{
+			potionTimers.onConfirmedUse(PotionEffect.BLESSED_CRYSTAL_SCARAB, System.nanoTime());
+		}
+	}
+
+	@Subscribe
+	public void onActorDeath(ActorDeath event)
+	{
+		if (running && client.getLocalPlayer() != null && event.getActor() == client.getLocalPlayer())
+		{
+			potionTimers.clearOnDeath();
 		}
 	}
 
