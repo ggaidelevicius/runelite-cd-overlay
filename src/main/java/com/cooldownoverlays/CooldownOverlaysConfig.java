@@ -36,7 +36,7 @@ public interface CooldownOverlaysConfig extends Config
 
 	@ConfigSection(
 		name = "Boost potions",
-		description = "Count down until combat stats fall below their selected levels",
+		description = "Choose actual skill levels to re-dose below; 0 disables a skill",
 		position = 13
 	)
 	String boostPotionsSection = "boostPotions";
@@ -140,8 +140,33 @@ public interface CooldownOverlaysConfig extends Config
 		return new Color(255, 205, 64);
 	}
 
+	@ConfigItem(
+		keyName = "animationBorderStyle",
+		name = "Border style",
+		description = "Trace the item's visible outline, or draw a border around its inventory slot",
+		position = 4,
+		section = animationsSection
+	)
+	default BorderStyle animationBorderStyle()
+	{
+		return BorderStyle.ITEM_OUTLINE;
+	}
+
+	@Range(min = 1, max = 6)
+	@Units(Units.PIXELS)
+	@ConfigItem(
+		keyName = "animationBorderWidth",
+		name = "Border width",
+		description = "Width of the activation border's main visible stroke in pixels",
+		position = 5,
+		section = animationsSection
+	)
+	default int animationBorderWidth()
+	{
+		return 1;
+	}
+
 	@Range(min = 0, max = 255)
-	@Units(" levels")
 	@ConfigItem(
 		keyName = "attackThreshold", name = "Attack below",
 		description = "Animate carried Attack-boosting potions below this actual Attack level; 0 disables this target, and a dose must improve Attack",
@@ -153,7 +178,6 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@Range(min = 0, max = 255)
-	@Units(" levels")
 	@ConfigItem(
 		keyName = "strengthThreshold", name = "Strength below",
 		description = "Animate carried Strength-boosting potions below this actual Strength level; 110 activates at 109, 0 disables, and a dose must improve Strength",
@@ -165,7 +189,6 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@Range(min = 0, max = 255)
-	@Units(" levels")
 	@ConfigItem(
 		keyName = "defenceThreshold", name = "Defence below",
 		description = "Animate carried Defence-boosting potions below this actual Defence level; 0 disables this target, and a dose must improve Defence",
@@ -177,7 +200,6 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@Range(min = 0, max = 255)
-	@Units(" levels")
 	@ConfigItem(
 		keyName = "rangedThreshold", name = "Ranged below",
 		description = "Animate carried Ranged-boosting potions below this actual Ranged level; 0 disables this target, and a dose must improve Ranged",
@@ -189,7 +211,6 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@Range(min = 0, max = 255)
-	@Units(" levels")
 	@ConfigItem(
 		keyName = "magicThreshold", name = "Magic below",
 		description = "Animate carried Magic-boosting potions below this actual Magic level; 0 disables this target, and a dose must improve Magic",

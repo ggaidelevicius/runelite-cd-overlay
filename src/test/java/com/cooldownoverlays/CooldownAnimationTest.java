@@ -176,6 +176,12 @@ public class CooldownAnimationTest
 		return new CooldownOverlaysConfig()
 		{
 			@Override
+			public BorderStyle animationBorderStyle()
+			{
+				return BorderStyle.INVENTORY_SLOT;
+			}
+
+			@Override
 			public DisplayMode displayMode()
 			{
 				return DisplayMode.CIRCLE;

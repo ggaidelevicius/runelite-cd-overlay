@@ -27,7 +27,9 @@ Under **Animations**, enable **Animate when ready**, then choose **Animation len
 - **While ready** keeps the moving activation border visible until the item is used or stops being ready.
 - **For a duration** plays it for the selected number of seconds after the item becomes ready. The default is three seconds.
 
-Animations are off by default. They appear only when a cooldown is ready, a fixed potion effect has expired, or an ordinary combat stat falls below its configured level and a dose would improve it. Running timers never animate. The color and duration remain configurable. Borders stay inside the inventory slot and do not alter click targets. Already-ready items can animate after the first valid server sample, and enabling animations or changing their length restarts the border on currently ready items. Hidden tabs do not pause or replay an old duration. Existing animation enablement, color, and duration preferences are carried over from earlier settings.
+**Border style** defaults to **Item outline**, which traces the item's visible silhouette using the sprite's alpha channel. Choose **Inventory slot** for a border around the rectangular tile. **Border width** controls the main visible stroke from **1–6 pixels**, with a default of **1 pixel**. In item-outline mode, an unavailable sprite leaves the border hidden until the sprite is available; it does not substitute a rectangular border.
+
+Animations are off by default. They appear only when a cooldown is ready, a fixed potion effect has expired, or an ordinary combat stat falls below its configured level and a dose would improve it. Running timers never animate. The color, duration, style, and width remain configurable. The outline and its soft glow extend around the item, respect interface clipping, and do not alter click targets. Already-ready items can animate after the first valid server sample, and enabling animations or changing their length, style, or width restarts the border on currently ready items. Hidden tabs do not pause or replay an old duration. Existing animation enablement, color, and duration preferences are carried over from earlier settings.
 
 ## Local setup
 
@@ -60,7 +62,7 @@ On macOS, the `run` task supplies the Java module exports required by RuneLite's
 
 The bundled development-client JAR carries the equivalent `Add-Exports` manifest attribute for `java -jar` launches. Missing these exports on newer JDKs causes an `IllegalAccessError` involving `OSXFullScreenAdapter` during startup.
 
-The ordinary plugin artifact is `build/libs/cooldown-overlays-1.0.0.jar`. For a bundled development-client JAR, use `./gradle-local shadowJar`. A standalone plugin JAR is not a drop-in installer for the normal client: local testing uses the development launcher, and distribution through the Plugin Hub requires a separate submission and review. See RuneLite's [Plugin Hub development guide](https://github.com/runelite/plugin-hub#creating-new-plugins).
+The ordinary plugin artifact is `build/libs/cooldown-overlays-1.0.1.jar`. For a bundled development-client JAR, use `./gradle-local shadowJar`. A standalone plugin JAR is not a drop-in installer for the normal client: local testing uses the development launcher, and distribution through the Plugin Hub requires a separate submission and review. See RuneLite's [Plugin Hub development guide](https://github.com/runelite/plugin-hub#creating-new-plugins).
 
 ## Timing behavior
 
@@ -92,7 +94,7 @@ Automated tests exercise the timer state and renderer without launching RuneLite
 5. In Chambers, drink each overload and prayer enhance strength. Verify the timers follow the remaining doses, refresh correctly, and disappear on raid exit.
 6. Drink a surge dose, verify the timer follows the remaining doses, and check its pause/resume behavior in content that pauses the cooldown. A reset at a pool should clear it.
 7. Drink stamina, antifire, super antifire, anti-venom, and divine potions. Verify their effect timers appear on the appropriate remaining doses. Refresh antifire midway through a bucket, try an extended variant, and check that venom protection clears before the longer poison-immunity tail.
-8. Under **Animations**, test **Animate when ready** with **While ready** and **For a duration**. A cooling-down item must not animate. Check initially ready items, change the color and duration, use the item, switch tabs, and log out to verify cancellation and clipping.
+8. Under **Animations**, test **Animate when ready** with **While ready** and **For a duration**. Compare **Item outline** on hearts and potion bottles against **Inventory slot**, and check border widths from 1 to 6 pixels. The item outline should follow the visible sprite rather than its rectangular tile. A cooling-down item must not animate. Check initially ready items, change the color and duration, use the item, switch tabs, and log out to verify cancellation and clipping.
 9. In ToA, use smelling salts and liquid adrenaline. Verify their timers follow the remaining uses. Drink a second adrenaline dose while the first remains active and confirm the timer refreshes. An unsuccessful use must not refresh it.
 10. Carry a strength or super strength potion, enable **Animate when ready**, and set **Strength below** to **110**. Verify the border stays off at 110 and appears at 109 when a dose would improve Strength. Drink one, wait for a natural decrease, and verify the timer predicts the drop below 110. Set separate targets for other skills, and set one to 0 to disable it. Re-drink midway through the decay cycle, toggle Preserve, and test a combined potion whose skills reach their targets at different times. Remove the matching potions from your inventory and verify no icon or reminder remains.
 

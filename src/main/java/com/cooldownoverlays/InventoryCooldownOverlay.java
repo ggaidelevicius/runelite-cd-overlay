@@ -1,6 +1,7 @@
 package com.cooldownoverlays;
 
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -16,10 +17,12 @@ final class InventoryCooldownOverlay extends WidgetItemOverlay
 	private final PotionTimers potionTimers;
 	private final BoostPotionTimers boostPotionTimers;
 	private final CooldownRenderer renderer;
+	private final ItemOutlineCache itemOutlines;
 
 	@Inject
 	InventoryCooldownOverlay(Client client, CooldownOverlaysConfig config, CooldownTracker tracker,
-		PotionTimers potionTimers, BoostPotionTimers boostPotionTimers, CooldownRenderer renderer)
+		PotionTimers potionTimers, BoostPotionTimers boostPotionTimers, CooldownRenderer renderer,
+		ItemOutlineCache itemOutlines)
 	{
 		this.client = client;
 		this.config = config;
@@ -27,6 +30,7 @@ final class InventoryCooldownOverlay extends WidgetItemOverlay
 		this.potionTimers = potionTimers;
 		this.boostPotionTimers = boostPotionTimers;
 		this.renderer = renderer;
+		this.itemOutlines = itemOutlines;
 		showOnInventory();
 	}
 
@@ -41,20 +45,30 @@ final class InventoryCooldownOverlay extends WidgetItemOverlay
 			|| itemId == ItemID.SATURATED_HEART && config.saturatedHeart();
 		if (enabled)
 		{
-			renderer.render(graphics, widgetItem.getCanvasBounds(), tracker.getHeart(), System.nanoTime());
+			render(graphics, widgetItem, tracker.getHeart());
 			return;
 		}
 		PotionItems.Family family = PotionItems.getFamily(itemId);
 		if (family != null && family.isEnabled(config))
 		{
-			renderer.render(graphics, widgetItem.getCanvasBounds(),
-				potionTimers.get(family.getEffect()), System.nanoTime());
+			render(graphics, widgetItem, potionTimers.get(family.getEffect()));
 		}
 		BoostPotion boostPotion = BoostPotion.forItem(itemId);
 		if (boostPotion != null && boostPotion.isEnabled(config))
 		{
-			renderer.render(graphics, widgetItem.getCanvasBounds(),
-				boostPotionTimers.get(boostPotion), System.nanoTime());
+			render(graphics, widgetItem, boostPotionTimers.get(boostPotion));
 		}
+	}
+
+	private void render(Graphics2D graphics, WidgetItem widgetItem, Cooldown cooldown)
+	{
+		long nowNanos = System.nanoTime();
+		if (!renderer.isVisible(cooldown, nowNanos))
+		{
+			return;
+		}
+		Shape outline = cooldown.isReady() && config.animationBorderStyle() == BorderStyle.ITEM_OUTLINE
+			? itemOutlines.getOutline(widgetItem.getId(), widgetItem.getQuantity()) : null;
+		renderer.render(graphics, widgetItem.getCanvasBounds(), cooldown, nowNanos, outline);
 	}
 }

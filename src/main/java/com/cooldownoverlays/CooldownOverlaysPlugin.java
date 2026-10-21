@@ -46,6 +46,8 @@ public class CooldownOverlaysPlugin extends Plugin
 	private CooldownOverlaysConfig config;
 	@Inject
 	private ConfigManager configManager;
+	@Inject
+	private ItemOutlineCache itemOutlines;
 	private volatile boolean running;
 	// Client-thread state: a queued startup callback must not replace a newer server sample.
 	private boolean sampled;
@@ -76,7 +78,11 @@ public class CooldownOverlaysPlugin extends Plugin
 	{
 		running = false;
 		overlayManager.remove(inventoryOverlay);
-		clientThread.invoke(this::clearTimers);
+		clientThread.invoke(() ->
+		{
+			clearTimers();
+			itemOutlines.clear();
+		});
 	}
 
 	@Subscribe
@@ -122,7 +128,8 @@ public class CooldownOverlaysPlugin extends Plugin
 	{
 		if (running && CooldownOverlaysConfig.GROUP.equals(event.getGroup())
 			&& (event.getKey().equals("animateActivation") || event.getKey().equals("animationMode")
-				|| event.getKey().equals("animationDuration")))
+				|| event.getKey().equals("animationDuration") || event.getKey().equals("animationBorderStyle")
+				|| event.getKey().equals("animationBorderWidth")))
 		{
 			clientThread.invoke(() ->
 			{
