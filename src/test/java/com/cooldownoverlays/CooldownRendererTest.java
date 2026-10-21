@@ -57,11 +57,11 @@ public class CooldownRendererTest
 	}
 
 	@Test
-	public void unknownCooldownShowsADimStaticCircleAndQuestionMarkInEveryMode()
+	public void unknownCooldownShowsADimStaticCircleAndQuestionMarkInLegacyModes()
 	{
 		Cooldown unknown = new Cooldown();
 		unknown.startUnknown(0);
-		for (DisplayMode mode : DisplayMode.values())
+		for (DisplayMode mode : new DisplayMode[]{DisplayMode.TIMER, DisplayMode.CIRCLE, DisplayMode.BOTH})
 		{
 			BufferedImage image = render(unknown, mode);
 			assertEquals(77, alpha(image, 12, 12));

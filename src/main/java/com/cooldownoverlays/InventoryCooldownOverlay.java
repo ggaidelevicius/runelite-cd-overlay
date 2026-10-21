@@ -67,7 +67,9 @@ final class InventoryCooldownOverlay extends WidgetItemOverlay
 		{
 			return;
 		}
-		Shape outline = cooldown.isReady() && config.animationBorderStyle() == BorderStyle.ITEM_OUTLINE
+		boolean needsSilhouette = cooldown.isActive() && config.displayMode().usesItemFill()
+			|| cooldown.isReady() && config.animationBorderStyle() == BorderStyle.ITEM_OUTLINE;
+		Shape outline = needsSilhouette
 			? itemOutlines.getOutline(widgetItem.getId(), widgetItem.getQuantity()) : null;
 		renderer.render(graphics, widgetItem.getCanvasBounds(), cooldown, nowNanos, outline);
 	}

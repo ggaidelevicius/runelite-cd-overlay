@@ -22,6 +22,8 @@ public class InventoryCooldownOverlayTest
 	private final BoostPotionTimers boosts = new BoostPotionTimers();
 	private GameState gameState = GameState.LOGGED_IN;
 	private boolean enabled = true;
+	private boolean itemsEnabled = true;
+	private DisplayMode displayMode = DisplayMode.BOTH;
 	private BorderStyle style = BorderStyle.ITEM_OUTLINE;
 	private boolean spriteAvailable = true;
 	private int spriteRequests;
@@ -45,9 +47,13 @@ public class InventoryCooldownOverlayTest
 		});
 	private final CooldownOverlaysConfig config = new CooldownOverlaysConfig()
 	{
+		@Override public DisplayMode displayMode() { return displayMode; }
 		@Override public boolean animateWhenReady() { return enabled; }
 		@Override public AnimationMode animationMode() { return AnimationMode.PERMANENT; }
 		@Override public BorderStyle animationBorderStyle() { return style; }
+		@Override public boolean saturatedHeart() { return itemsEnabled; }
+		@Override public boolean staminaPotion() { return itemsEnabled; }
+		@Override public boolean superStrengthPotion() { return itemsEnabled; }
 	};
 	private final InventoryCooldownOverlay overlay = new InventoryCooldownOverlay(client, config,
 		tracker, potions, boosts, new CooldownRenderer(config), new ItemOutlineCache(client));
@@ -112,6 +118,107 @@ public class InventoryCooldownOverlayTest
 				assertEquals("The original slot must not glow during a drag", 0, image.getRGB(x, y));
 			}
 		}
+	}
+
+	@Test
+	public void bothItemFillModesUseTheActiveItemSpriteWithoutReadyAnimations()
+	{
+		startActiveCooldowns();
+		enabled = false;
+		style = BorderStyle.INVENTORY_SLOT;
+		displayMode = DisplayMode.ITEM_FILL;
+		int[] items = {ItemID.SATURATED_HEART, ItemID._4DOSESTAMINA, ItemID._4DOSE2STRENGTH};
+		for (int item : items)
+		{
+			assertTrue(visiblePixels(render(item, 2, null)) > 0);
+			assertEquals(item, requestedId);
+			assertEquals(2, requestedQuantity);
+		}
+		assertEquals(3, spriteRequests);
+
+		displayMode = DisplayMode.TIMER_AND_ITEM_FILL;
+		for (int item : items)
+		{
+			assertTrue(visiblePixels(render(item, 2, null)) > 0);
+		}
+		assertEquals("Switching fill modes must reuse the same item silhouettes", 3, spriteRequests);
+	}
+
+	@Test
+	public void activeItemFillCachesSilhouettesByItemAndQuantityAcrossFrames()
+	{
+		startActiveCooldowns();
+		displayMode = DisplayMode.ITEM_FILL;
+		render(ItemID.SATURATED_HEART, 1, null);
+		render(ItemID.SATURATED_HEART, 1, null);
+		assertEquals(1, spriteRequests);
+		render(ItemID.SATURATED_HEART, 3, null);
+		assertEquals(2, spriteRequests);
+		assertEquals(ItemID.SATURATED_HEART, requestedId);
+		assertEquals(3, requestedQuantity);
+		render(ItemID.SATURATED_HEART, 3, null);
+		assertEquals(2, spriteRequests);
+	}
+
+	@Test
+	public void activeItemFillFollowsTheDraggedItem()
+	{
+		startActiveCooldowns();
+		displayMode = DisplayMode.ITEM_FILL;
+		BufferedImage image = render(ItemID.SATURATED_HEART, 1, new Rectangle(48, 40, 36, 32));
+		assertTrue(visiblePixels(image) > 0);
+		for (int x = 0; x < 45; x++)
+		{
+			for (int y = 0; y < image.getHeight(); y++)
+			{
+				assertEquals("The cooldown mask must follow the dragged icon", 0, image.getRGB(x, y));
+			}
+		}
+	}
+
+	@Test
+	public void disabledLoggedOutAndUnrelatedItemsDoNotRequestFillSprites()
+	{
+		startActiveCooldowns();
+		displayMode = DisplayMode.ITEM_FILL;
+		int[] items = {ItemID.SATURATED_HEART, ItemID._4DOSESTAMINA, ItemID._4DOSE2STRENGTH};
+		itemsEnabled = false;
+		for (int item : items)
+		{
+			assertEquals(0, visiblePixels(render(item, 1, null)));
+		}
+		itemsEnabled = true;
+		gameState = GameState.LOGIN_SCREEN;
+		for (int item : items)
+		{
+			assertEquals(0, visiblePixels(render(item, 1, null)));
+		}
+		gameState = GameState.LOGGED_IN;
+		assertEquals(0, visiblePixels(render(ItemID.COINS, 1, null)));
+		assertEquals(0, spriteRequests);
+	}
+
+	@Test
+	public void missingActiveFillSpriteRetriesWithoutDrawingAnInventoryTile()
+	{
+		startActiveCooldowns();
+		displayMode = DisplayMode.ITEM_FILL;
+		spriteAvailable = false;
+		assertEquals(0, visiblePixels(render(ItemID.SATURATED_HEART, 1, null)));
+		assertEquals(1, spriteRequests);
+		spriteAvailable = true;
+		BufferedImage image = render(ItemID.SATURATED_HEART, 1, null);
+		assertTrue(visiblePixels(image) > 0);
+		assertEquals(2, spriteRequests);
+		assertEquals("The inventory tile outside the item silhouette must stay clear", 0, image.getRGB(9, 9));
+	}
+
+	private void startActiveCooldowns()
+	{
+		long nowNanos = System.nanoTime();
+		tracker.getHeart().start(100, 200, nowNanos);
+		potions.get(PotionEffect.STAMINA).start(100, 200, nowNanos);
+		boosts.get(BoostPotion.SUPER_STRENGTH).start(100, 200, nowNanos);
 	}
 
 	private BufferedImage render(int item, int quantity, Rectangle dragging)

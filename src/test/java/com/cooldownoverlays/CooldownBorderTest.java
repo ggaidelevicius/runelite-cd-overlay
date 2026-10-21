@@ -210,7 +210,7 @@ public class CooldownBorderTest
 	}
 
 	@Test
-	public void activeKnownAndUnknownTimersIgnoreReadyBorderStyleWidthAndShape()
+	public void activeKnownAndUnknownTimersIgnoreReadyBorderStyleAndWidth()
 	{
 		for (DisplayMode mode : DisplayMode.values())
 		{
@@ -227,13 +227,18 @@ public class CooldownBorderTest
 				}
 				BufferedImage outline = render(cooldown, 0, ICON, BOTTLE,
 					config(BorderStyle.ITEM_OUTLINE, 1, AnimationMode.PERMANENT, 3, mode));
-				BufferedImage noOutline = render(cooldown, 0, ICON, null,
+				BufferedImage wideOutline = render(cooldown, 0, ICON, BOTTLE,
 					config(BorderStyle.ITEM_OUTLINE, 6, AnimationMode.TIMED, 3, mode));
 				BufferedImage tile = render(cooldown, 0, ICON, BOTTLE,
 					config(BorderStyle.INVENTORY_SLOT, 6, AnimationMode.PERMANENT, 3, mode));
 				assertTrue("The active timer still renders", visiblePixels(outline) > 0);
-				assertImagesEqual(outline, noOutline);
+				assertImagesEqual(outline, wideOutline);
 				assertImagesEqual(outline, tile);
+				if (!mode.usesItemFill())
+				{
+					assertImagesEqual(outline, render(cooldown, 0, ICON, null,
+						config(BorderStyle.ITEM_OUTLINE, 1, AnimationMode.PERMANENT, 3, mode)));
+				}
 			}
 		}
 	}

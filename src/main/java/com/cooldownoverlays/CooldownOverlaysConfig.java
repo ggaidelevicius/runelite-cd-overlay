@@ -58,7 +58,7 @@ public interface CooldownOverlaysConfig extends Config
 	@ConfigItem(
 		keyName = "displayMode",
 		name = "Display mode",
-		description = "Show a timer, a circular cooldown sweep, or both on each enabled icon",
+		description = "Show a timer, a circular sweep, or an item fill that reveals the original icon from bottom to top",
 		position = 0
 	)
 	default DisplayMode displayMode()
@@ -70,8 +70,8 @@ public interface CooldownOverlaysConfig extends Config
 	@Units(Units.PERCENT)
 	@ConfigItem(
 		keyName = "circleOpacity",
-		name = "Circle opacity",
-		description = "Opacity of the dark cooldown sweep; the icon clears clockwise as it becomes ready",
+		name = "Progress opacity",
+		description = "How much to darken the remaining circular sweep or unfilled part of the item",
 		position = 1
 	)
 	default int circleOpacity()

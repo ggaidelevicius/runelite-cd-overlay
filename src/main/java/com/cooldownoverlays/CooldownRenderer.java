@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.Arc2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import javax.inject.Inject;
 
@@ -57,7 +58,14 @@ final class CooldownRenderer
 			if (cooldown.isActive() && (!known || mode != DisplayMode.TIMER))
 			{
 				double fraction = known ? cooldown.getRemainingFraction(nowNanos) : 1;
-				drawCircle(iconGraphics, bounds, fraction, known);
+				if (mode.usesItemFill())
+				{
+					drawItemFill(iconGraphics, bounds, itemOutline, fraction, known);
+				}
+				else
+				{
+					drawCircle(iconGraphics, bounds, fraction, known);
+				}
 			}
 			if (cooldown.isReady())
 			{
@@ -71,7 +79,7 @@ final class CooldownRenderer
 				drawAnimatedBorder(iconGraphics, bounds, itemOutline, nowNanos, opacity);
 			}
 			// Draw text last so glows never obscure the timer.
-			if (cooldown.isActive() && (!known || mode != DisplayMode.CIRCLE))
+			if (cooldown.isActive() && (!known || mode.showsTimer()))
 			{
 				drawTimer(iconGraphics, bounds, known ? formatSeconds(seconds) : "?");
 			}
@@ -147,6 +155,43 @@ final class CooldownRenderer
 			(int) Math.round(color.getAlpha() * Math.max(0, Math.min(1, opacity))));
 	}
 
+	private void drawItemFill(Graphics2D graphics, Rectangle bounds, Shape silhouette,
+		double fraction, boolean known)
+	{
+		if (silhouette == null)
+		{
+			return;
+		}
+		Rectangle2D itemBounds = silhouette.getBounds2D();
+		double remaining = Math.max(0, Math.min(1, fraction));
+		if (itemBounds.isEmpty() || remaining <= 0)
+		{
+			return;
+		}
+		Graphics2D fillGraphics = (Graphics2D) graphics.create();
+		try
+		{
+			fillGraphics.translate(bounds.x, bounds.y);
+			fillGraphics.clip(silhouette);
+			fillGraphics.setColor(progressShade(known));
+			// Only shade unrevealed item pixels. The original full-colour icon shows
+			// below the rising boundary, including its texture and transparent holes.
+			fillGraphics.fill(new Rectangle2D.Double(itemBounds.getX(), itemBounds.getY(),
+				itemBounds.getWidth(), itemBounds.getHeight() * remaining));
+		}
+		finally
+		{
+			fillGraphics.dispose();
+		}
+	}
+
+	private Color progressShade(boolean known)
+	{
+		int opacity = Math.max(0, Math.min(100, config.circleOpacity()));
+		int alpha = (int) Math.round(opacity * 255 / 100.0 * (known ? 1 : 0.5));
+		return new Color(0, 0, 0, alpha);
+	}
+
 	private void drawCircle(Graphics2D graphics, Rectangle bounds, double fraction, boolean known)
 	{
 		double remaining = Math.max(0, Math.min(1, fraction));
@@ -155,9 +200,7 @@ final class CooldownRenderer
 		{
 			return;
 		}
-		int opacity = Math.max(0, Math.min(100, config.circleOpacity()));
-		int alpha = (int) Math.round(opacity * 255 / 100.0 * (known ? 1 : 0.5));
-		graphics.setColor(new Color(0, 0, 0, alpha));
+		graphics.setColor(progressShade(known));
 		// Start fully shaded, then reveal clockwise from twelve o'clock.
 		double startAngle = 90 - (1 - remaining) * 360;
 		graphics.fill(new Arc2D.Double(
