@@ -24,6 +24,7 @@ public class InventoryCooldownOverlayTest
 	private boolean enabled = true;
 	private boolean itemsEnabled = true;
 	private DisplayMode displayMode = DisplayMode.BOTH;
+	private ReadyStyle readyStyle = ReadyStyle.ANIMATED_BORDER;
 	private BorderStyle style = BorderStyle.ITEM_OUTLINE;
 	private boolean spriteAvailable = true;
 	private int spriteRequests;
@@ -48,6 +49,7 @@ public class InventoryCooldownOverlayTest
 	private final CooldownOverlaysConfig config = new CooldownOverlaysConfig()
 	{
 		@Override public DisplayMode displayMode() { return displayMode; }
+		@Override public ReadyStyle readyStyle() { return readyStyle; }
 		@Override public boolean animateWhenReady() { return enabled; }
 		@Override public AnimationMode animationMode() { return AnimationMode.PERMANENT; }
 		@Override public BorderStyle animationBorderStyle() { return style; }
@@ -72,6 +74,25 @@ public class InventoryCooldownOverlayTest
 			assertEquals(2, requestedQuantity);
 		}
 		assertEquals(3, spriteRequests);
+	}
+
+	@Test
+	public void cornerMarkerNeedsNoOutlineEvenWithItemOutlineSelected()
+	{
+		tracker.getHeart().setReady(0);
+		readyStyle = ReadyStyle.CORNER_MARKER;
+		spriteAvailable = false;
+		assertTrue(visiblePixels(render(ItemID.SATURATED_HEART, 1, null)) > 0);
+		assertEquals(0, spriteRequests);
+	}
+
+	@Test
+	public void finishedSingleFlashDoesNotKeepRequestingSprites()
+	{
+		tracker.getHeart().setReady(System.nanoTime() - 2_000_000_000L);
+		readyStyle = ReadyStyle.SINGLE_FLASH;
+		assertEquals(0, visiblePixels(render(ItemID.SATURATED_HEART, 1, null)));
+		assertEquals(0, spriteRequests);
 	}
 
 	@Test

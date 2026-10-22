@@ -11,7 +11,7 @@ A RuneLite plugin that draws World of Warcraft-style cooldown sweeps and countdo
 - **Tombs of Amascut smelling salts**, **liquid adrenaline**, **silk dressing**, and **blessed crystal scarabs**, including both remaining doses or uses.
 - **Timer**, **circular sweep**, or **item fill**, with an optional countdown over either progress style. The circle clears clockwise; the item fill reveals the original icon colours from bottom to top.
 - An independent checkbox for every supported item family, plus progress opacity and timer color settings.
-- One optional **Animate when ready** setting, inspired by TellMeWhen's [activation border](https://github.com/ascott18/TellMeWhen/blob/master/Components/IconModules/IconModule_IconContainer/IconContainer.lua).
+- One optional **Show ready indicator** setting, with seven visual styles and a live super combat potion preview.
 
 Search for **Cooldown Overlays** in RuneLite's plugin settings. All supported item families are enabled by default. Timers are tracked even while their individual checkboxes are off, so switching a checkbox back on preserves the timer.
 
@@ -23,16 +23,29 @@ Set **Display mode** to **Item fill** or **Timer and item fill** for the rising 
 
 **Boost potions** contains separate checkboxes for ordinary attack, strength, defence, their super versions, combat, super combat, ranging, magic, bastion, and battlemage potions. Dose and mix variants share the matching checkbox. Set independent **Attack below**, **Strength below**, **Defence below**, **Ranged below**, and **Magic below** levels. These are actual stat levels: **Strength below 110** becomes ready at **109**, and stays inactive at 110. Each target defaults to **0**, which disables that skill until you choose a level.
 
-The timer counts down until a relevant stat falls strictly below its configured level. Combined potions use the first enabled, eligible stat to reach its own target. A dose must improve that stat before its icon can animate, including when a target is higher than the potion's full boost. Enable **Animate when ready** to show the border, and carry a matching enabled potion in your inventory: without a potion, there is no icon or visual reminder. Older relative-boost thresholds are not converted into actual stat targets; set the new levels explicitly.
+The timer counts down until a relevant stat falls strictly below its configured level. Combined potions use the first enabled, eligible stat to reach its own target. A dose must improve that stat before its icon can show a ready indicator, including when a target is higher than the potion's full boost. Enable **Show ready indicator** to show the selected signal, and carry a matching enabled potion in your inventory: without a potion, there is no icon or visual reminder. Older relative-boost thresholds are not converted into actual stat targets; set the new levels explicitly.
 
-Under **Animations**, enable **Animate when ready**, then choose **Animation length**:
+Under **Ready indicator**, enable **Show ready indicator**, then choose **Ready style**:
 
-- **While ready** keeps the moving activation border visible until the item is used or stops being ready.
-- **For a duration** plays it for the selected number of seconds after the item becomes ready. The default is three seconds.
+- **Animated border** retains the moving, pulsing border inspired by TellMeWhen's [activation border](https://github.com/ascott18/TellMeWhen/blob/master/Components/IconModules/IconModule_IconContainer/IconContainer.lua). This remains the default style.
+- **Steady outline** draws a fixed coloured contour.
+- **Soft glow** adds a stationary, faint halo.
+- **Corner marker** places a small coloured dot in the bottom-right corner.
+- **Breathing glow** gently fades in and out without moving around the icon.
+- **Single flash** flashes once for 0.8 seconds, then disappears.
+- **Flash, then steady** flashes once, then settles into a fixed outline.
 
-**Border style** defaults to **Item outline**, which traces the item's visible silhouette using the sprite's alpha channel. Choose **Inventory slot** for a border around the rectangular tile. **Border width** controls the main visible stroke from **1–6 pixels**, with a default of **1 pixel**. In item-outline mode, an unavailable sprite leaves the border hidden until the sprite is available; it does not substitute a rectangular border.
+**Indicator length** offers **While ready** or **For a duration**. Duration mode shows the signal for the selected number of seconds, fading out at the end; the default is three seconds. **Single flash** always plays once, including in **While ready** mode. Changing the ready style restarts the signal on currently ready items.
 
-Animations are off by default. They appear only when a cooldown is ready, a fixed potion effect has expired, or an ordinary combat stat falls below its configured level and a dose would improve it. Running timers never animate. The color, duration, style, and width remain configurable. The outline and its soft glow extend around the item, respect interface clipping, and do not alter click targets. Already-ready items can animate after the first valid server sample, and enabling animations or changing their length, style, or width restarts the border on currently ready items. Hidden tabs do not pause or replay an old duration. Existing animation enablement, color, and duration preferences are carried over from earlier settings.
+**Border style** defaults to **Item outline**, which follows the visible sprite. Choose **Inventory slot** for a border around the rectangular tile. **Border width** controls the main stroke from **1–6 pixels**, with a default of **1 pixel**. Border and glow styles use these settings; the corner marker has its own fixed position. An unavailable item silhouette leaves a border hidden until the sprite is available.
+
+Ready indicators are off by default. They appear only when a cooldown is ready, a fixed potion effect has expired, or an ordinary combat stat falls below its configured level and a dose would improve it. The colour, duration, style, and width remain configurable. Signals respect interface clipping and do not alter click targets. Already-ready items can show a signal after the first valid server sample. Hidden inventory tabs do not pause or replay an old duration. Existing enablement, colour, duration, and border preferences are preserved.
+
+### Settings preview
+
+Enable **Show preview** near the top of the plugin settings to open a compact preview window alongside them. It shows the actual **Super combat potion(4)** icon at native size and enlarged, using the same renderer and current display settings as inventory items. Its independent countdown reaches ready after **10 seconds**. **Restart preview** starts the demonstration again.
+
+Keep the preview open while changing display mode, opacity, ready style, colour, width, or duration. The preview respects **Show ready indicator**; turn that on to see ready signals. Changing ready-indicator settings after the countdown finishes replays the ready phase without another ten-second wait. Closing the preview or stopping the plugin stops its animation and turns **Show preview** off. The demonstration does not change game timers or require a potion in your inventory.
 
 ## Local setup
 
@@ -65,7 +78,7 @@ On macOS, the `run` task supplies the Java module exports required by RuneLite's
 
 The bundled development-client JAR carries the equivalent `Add-Exports` manifest attribute for `java -jar` launches. Missing these exports on newer JDKs causes an `IllegalAccessError` involving `OSXFullScreenAdapter` during startup.
 
-The ordinary plugin artifact is `build/libs/cooldown-overlays-1.0.2.jar`. For a bundled development-client JAR, use `./gradle-local shadowJar`. A standalone plugin JAR is not a drop-in installer for the normal client: local testing uses the development launcher, and distribution through the Plugin Hub requires a separate submission and review. See RuneLite's [Plugin Hub development guide](https://github.com/runelite/plugin-hub#creating-new-plugins).
+The ordinary plugin artifact is `build/libs/cooldown-overlays-1.0.3.jar`. For a bundled development-client JAR, use `./gradle-local shadowJar`. A standalone plugin JAR is not a drop-in installer for the normal client: local testing uses the development launcher, and distribution through the Plugin Hub requires a separate submission and review. See RuneLite's [Plugin Hub development guide](https://github.com/runelite/plugin-hub#creating-new-plugins).
 
 ## Timing behavior
 
@@ -99,11 +112,13 @@ Automated tests exercise the timer state and renderer without launching RuneLite
 5. In Chambers, drink each overload and prayer enhance strength. Verify the timers follow the remaining doses, refresh correctly, and disappear on raid exit.
 6. Drink a surge dose, verify the timer follows the remaining doses, and check its pause/resume behavior in content that pauses the cooldown. A reset at a pool should clear it.
 7. Drink stamina, antifire, super antifire, anti-venom, and divine potions. Verify their effect timers appear on the appropriate remaining doses. Refresh antifire midway through a bucket, try an extended variant, and check that venom protection clears before the longer poison-immunity tail.
-8. Under **Animations**, test **Animate when ready** with **While ready** and **For a duration**. Compare **Item outline** on hearts and potion bottles against **Inventory slot**, and check border widths from 1 to 6 pixels. The item outline should follow the visible sprite rather than its rectangular tile. A cooling-down item must not animate. Check initially ready items, change the color and duration, use the item, switch tabs, and log out to verify cancellation and clipping.
+8. Under **Ready indicator**, test all seven styles with **While ready** and **For a duration**. Check that steady outline, soft glow, and corner marker stay still, single flash stops after its first flash, and flash-then-steady settles into an outline. Compare **Item outline** on hearts and potion bottles against **Inventory slot**, and check border widths from 1 to 6 pixels. The item outline should follow the visible sprite rather than its rectangular tile. A cooling-down item must not animate. Check initially ready items, change the color and duration, use the item, switch tabs, and log out to verify cancellation and clipping.
 9. In ToA, use smelling salts and liquid adrenaline. Verify their timers follow the remaining uses. Drink a second adrenaline dose while the first remains active and confirm the timer refreshes. An unsuccessful use must not refresh it.
-10. Carry a strength or super strength potion, enable **Animate when ready**, and set **Strength below** to **110**. Verify the border stays off at 110 and appears at 109 when a dose would improve Strength. Drink one, wait for a natural decrease, and verify the timer predicts the drop below 110. Set separate targets for other skills, and set one to 0 to disable it. Re-drink midway through the decay cycle, toggle Preserve, and test a combined potion whose skills reach their targets at different times. Remove the matching potions from your inventory and verify no icon or reminder remains.
+10. Carry a strength or super strength potion, enable **Show ready indicator**, and set **Strength below** to **110**. Verify the border stays off at 110 and appears at 109 when a dose would improve Strength. Drink one, wait for a natural decrease, and verify the timer predicts the drop below 110. Set separate targets for other skills, and set one to 0 to disable it. Re-drink midway through the decay cycle, toggle Preserve, and test a combined potion whose skills reach their targets at different times. Remove the matching potions from your inventory and verify no icon or reminder remains.
 11. Drink each new effect potion and antipoison family, and verify the overlay follows its remaining doses. After anti-venom wears off, compare its ready border with the longer poison timer on antipoison items. Check Nightmare Zone and blighted overloads independently of Chambers, and check Scarred scraps while stamina is active.
 12. In ToA, apply silk dressing and crack a blessed crystal scarab. Confirm 60-second and 24-second timers, refresh each effect, and check death, logout, and world-hop cancellation. Failed uses and player chat must not start a timer.
+
+13. Open **Show preview**, confirm the super combat potion reaches ready after ten seconds, and replay it with **Restart preview**. Change visual settings during the countdown and after it finishes, then close the window and disable the plugin. Reopen it to verify a fresh countdown and no leftover animation.
 
 No game input or item use is automated by this plugin.
 

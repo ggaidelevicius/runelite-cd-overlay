@@ -51,6 +51,8 @@ public class CooldownOverlaysPlugin extends Plugin
 	private ConfigManager configManager;
 	@Inject
 	private ItemOutlineCache itemOutlines;
+	@Inject
+	private CooldownPreview preview;
 	private volatile boolean running;
 	// Client-thread state: a queued startup callback must not replace a newer server sample.
 	private boolean sampled;
@@ -66,6 +68,7 @@ public class CooldownOverlaysPlugin extends Plugin
 	{
 		migrateAnimations();
 		running = true;
+		preview.start();
 		overlayManager.add(inventoryOverlay);
 		clientThread.invoke(() ->
 		{
@@ -80,6 +83,7 @@ public class CooldownOverlaysPlugin extends Plugin
 	protected void shutDown()
 	{
 		running = false;
+		preview.stop();
 		overlayManager.remove(inventoryOverlay);
 		clientThread.invoke(() ->
 		{
@@ -150,10 +154,14 @@ public class CooldownOverlaysPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (running && CooldownOverlaysConfig.GROUP.equals(event.getGroup())
-			&& (event.getKey().equals("animateActivation") || event.getKey().equals("animationMode")
-				|| event.getKey().equals("animationDuration") || event.getKey().equals("animationBorderStyle")
-				|| event.getKey().equals("animationBorderWidth")))
+		if (!running || !CooldownOverlaysConfig.GROUP.equals(event.getGroup()))
+		{
+			return;
+		}
+		preview.onConfigChanged();
+		if (event.getKey().equals("animateActivation") || event.getKey().equals("animationMode")
+			|| event.getKey().equals("animationDuration") || event.getKey().equals("animationBorderStyle")
+			|| event.getKey().equals("animationBorderWidth") || event.getKey().equals("readyStyle"))
 		{
 			clientThread.invoke(() ->
 			{

@@ -42,8 +42,8 @@ public interface CooldownOverlaysConfig extends Config
 	String boostPotionsSection = "boostPotions";
 
 	@ConfigSection(
-		name = "Animations",
-		description = "Animate inventory icons when their items are ready to use",
+		name = "Ready indicator",
+		description = "Show a visual signal when an item is ready to use",
 		position = 5
 	)
 	String animationsSection = "animations";
@@ -91,9 +91,20 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "showPreview",
+		name = "Show preview",
+		description = "Open a super combat potion preview beside settings, with a 10-second cooldown and a Restart preview button",
+		position = 3
+	)
+	default boolean showPreview()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 		keyName = "animateActivation",
-		name = "Animate when ready",
-		description = "Animate an item when its cooldown ends, effect expires, or a relevant stat falls below its selected level",
+		name = "Show ready indicator",
+		description = "Show the chosen signal when an item's cooldown ends, effect expires, or a relevant stat falls below its selected level",
 		position = 0,
 		section = animationsSection
 	)
@@ -103,10 +114,22 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "animationMode",
-		name = "Animation length",
-		description = "Keep the border animated while ready, or stop after the selected duration",
+		keyName = "readyStyle",
+		name = "Ready style",
+		description = "Choose a moving border, steady outline, soft glow, corner marker, breathing glow, single flash, or flash followed by a steady outline",
 		position = 1,
+		section = animationsSection
+	)
+	default ReadyStyle readyStyle()
+	{
+		return ReadyStyle.ANIMATED_BORDER;
+	}
+
+	@ConfigItem(
+		keyName = "animationMode",
+		name = "Indicator length",
+		description = "Keep the signal visible while ready, or stop after the selected duration; single flashes always play once",
+		position = 2,
 		section = animationsSection
 	)
 	default AnimationMode animationMode()
@@ -118,9 +141,9 @@ public interface CooldownOverlaysConfig extends Config
 	@Units(Units.SECONDS)
 	@ConfigItem(
 		keyName = "animationDuration",
-		name = "Animation duration",
-		description = "How long the ready border remains visible in duration mode",
-		position = 2,
+		name = "Indicator duration",
+		description = "How long the ready signal remains visible in duration mode",
+		position = 3,
 		section = animationsSection
 	)
 	default int animationDuration()
@@ -130,9 +153,9 @@ public interface CooldownOverlaysConfig extends Config
 
 	@ConfigItem(
 		keyName = "animationColor",
-		name = "Animation color",
-		description = "Color of the animated ready border",
-		position = 3,
+		name = "Indicator color",
+		description = "Color of the ready signal",
+		position = 4,
 		section = animationsSection
 	)
 	default Color animationColor()
@@ -144,7 +167,7 @@ public interface CooldownOverlaysConfig extends Config
 		keyName = "animationBorderStyle",
 		name = "Border style",
 		description = "Trace the item's visible outline, or draw a border around its inventory slot",
-		position = 4,
+		position = 5,
 		section = animationsSection
 	)
 	default BorderStyle animationBorderStyle()
@@ -158,7 +181,7 @@ public interface CooldownOverlaysConfig extends Config
 		keyName = "animationBorderWidth",
 		name = "Border width",
 		description = "Width of the activation border's main visible stroke in pixels",
-		position = 5,
+		position = 6,
 		section = animationsSection
 	)
 	default int animationBorderWidth()
@@ -169,7 +192,7 @@ public interface CooldownOverlaysConfig extends Config
 	@Range(min = 0, max = 255)
 	@ConfigItem(
 		keyName = "attackThreshold", name = "Attack below",
-		description = "Animate carried Attack-boosting potions below this actual Attack level; 0 disables this target, and a dose must improve Attack",
+		description = "Mark carried Attack-boosting potions below this actual Attack level; 0 disables this target, and a dose must improve Attack",
 		position = 0, section = boostPotionsSection
 	)
 	default int attackThreshold()
@@ -180,7 +203,7 @@ public interface CooldownOverlaysConfig extends Config
 	@Range(min = 0, max = 255)
 	@ConfigItem(
 		keyName = "strengthThreshold", name = "Strength below",
-		description = "Animate carried Strength-boosting potions below this actual Strength level; 110 activates at 109, 0 disables, and a dose must improve Strength",
+		description = "Mark carried Strength-boosting potions below this actual Strength level; 110 activates at 109, 0 disables, and a dose must improve Strength",
 		position = 1, section = boostPotionsSection
 	)
 	default int strengthThreshold()
@@ -191,7 +214,7 @@ public interface CooldownOverlaysConfig extends Config
 	@Range(min = 0, max = 255)
 	@ConfigItem(
 		keyName = "defenceThreshold", name = "Defence below",
-		description = "Animate carried Defence-boosting potions below this actual Defence level; 0 disables this target, and a dose must improve Defence",
+		description = "Mark carried Defence-boosting potions below this actual Defence level; 0 disables this target, and a dose must improve Defence",
 		position = 2, section = boostPotionsSection
 	)
 	default int defenceThreshold()
@@ -202,7 +225,7 @@ public interface CooldownOverlaysConfig extends Config
 	@Range(min = 0, max = 255)
 	@ConfigItem(
 		keyName = "rangedThreshold", name = "Ranged below",
-		description = "Animate carried Ranged-boosting potions below this actual Ranged level; 0 disables this target, and a dose must improve Ranged",
+		description = "Mark carried Ranged-boosting potions below this actual Ranged level; 0 disables this target, and a dose must improve Ranged",
 		position = 3, section = boostPotionsSection
 	)
 	default int rangedThreshold()
@@ -213,7 +236,7 @@ public interface CooldownOverlaysConfig extends Config
 	@Range(min = 0, max = 255)
 	@ConfigItem(
 		keyName = "magicThreshold", name = "Magic below",
-		description = "Animate carried Magic-boosting potions below this actual Magic level; 0 disables this target, and a dose must improve Magic",
+		description = "Mark carried Magic-boosting potions below this actual Magic level; 0 disables this target, and a dose must improve Magic",
 		position = 4, section = boostPotionsSection
 	)
 	default int magicThreshold()

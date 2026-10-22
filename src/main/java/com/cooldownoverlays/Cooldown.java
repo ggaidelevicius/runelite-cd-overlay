@@ -1,7 +1,7 @@
 package com.cooldownoverlays;
 
 /** Client-thread state for a server-confirmed cooldown, measured in game ticks. */
-final class Cooldown
+final class Cooldown implements CooldownView
 {
 	static final long TICK_NANOS = 600_000_000L;
 	private boolean active;
@@ -71,13 +71,15 @@ final class Cooldown
 		}
 	}
 
-	double getFinishedAgeSeconds(long nowNanos)
+	@Override
+	public double getFinishedAgeSeconds(long nowNanos)
 	{
 		return ready && nowNanos >= readyAtNanos
 			? (nowNanos - readyAtNanos) / 1_000_000_000.0 : -1;
 	}
 
-	boolean isReady()
+	@Override
+	public boolean isReady()
 	{
 		return ready;
 	}
@@ -90,12 +92,14 @@ final class Cooldown
 		}
 	}
 
-	boolean isActive()
+	@Override
+	public boolean isActive()
 	{
 		return active;
 	}
 
-	boolean isKnown()
+	@Override
+	public boolean isKnown()
 	{
 		return known;
 	}
@@ -105,7 +109,8 @@ final class Cooldown
 		return totalTicks;
 	}
 
-	double getRemainingSeconds(long nowNanos)
+	@Override
+	public double getRemainingSeconds(long nowNanos)
 	{
 		if (!active || !known)
 		{
@@ -117,7 +122,8 @@ final class Cooldown
 		return Math.max(0.001, remaining / 1_000_000_000.0);
 	}
 
-	double getRemainingFraction(long nowNanos)
+	@Override
+	public double getRemainingFraction(long nowNanos)
 	{
 		if (!active)
 		{

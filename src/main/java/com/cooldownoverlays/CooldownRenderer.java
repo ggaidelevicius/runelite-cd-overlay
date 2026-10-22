@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.Arc2D;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import javax.inject.Inject;
@@ -17,6 +18,7 @@ import javax.inject.Inject;
 final class CooldownRenderer
 {
 	private static final Font TIMER_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 12);
+	private static final double FLASH_SECONDS = 0.8;
 	private final CooldownOverlaysConfig config;
 
 	@Inject
@@ -25,14 +27,14 @@ final class CooldownRenderer
 		this.config = config;
 	}
 
-	void render(Graphics2D graphics, Rectangle bounds, Cooldown cooldown, long nowNanos)
+	void render(Graphics2D graphics, Rectangle bounds, CooldownView cooldown, long nowNanos)
 	{
 		render(graphics, bounds, cooldown, nowNanos, null);
 	}
 
-	void render(Graphics2D graphics, Rectangle bounds, Cooldown cooldown, long nowNanos, Shape itemOutline)
+	void render(Graphics2D graphics, Rectangle bounds, CooldownView cooldown, long nowNanos, Shape itemOutline)
 	{
-		if (!isVisible(cooldown, nowNanos) || bounds.width <= 0 || bounds.height <= 0)
+		if (!isVisible(cooldown, nowNanos) || bounds == null || bounds.width <= 0 || bounds.height <= 0)
 		{
 			return;
 		}
@@ -49,7 +51,8 @@ final class CooldownRenderer
 		{
 			// A silhouette stroke can extend slightly beyond its source sprite. Keep the
 			// inherited widget clip, while tile borders and timers stay inside their icon.
-			if (cooldown.isActive() || config.animationBorderStyle() != BorderStyle.ITEM_OUTLINE)
+			if (cooldown.isActive() || !config.readyStyle().usesBorder()
+				|| config.animationBorderStyle() != BorderStyle.ITEM_OUTLINE)
 			{
 				iconGraphics.clip(bounds);
 			}
@@ -76,7 +79,8 @@ final class CooldownRenderer
 					double age = cooldown.getFinishedAgeSeconds(nowNanos);
 					opacity = Math.min(1, (duration - age) / Math.min(0.5, duration));
 				}
-				drawAnimatedBorder(iconGraphics, bounds, itemOutline, nowNanos, opacity);
+				drawReadyIndicator(iconGraphics, bounds, itemOutline,
+					nowNanos, cooldown.getFinishedAgeSeconds(nowNanos), opacity);
 			}
 			// Draw text last so glows never obscure the timer.
 			if (cooldown.isActive() && (!known || mode.showsTimer()))
@@ -90,7 +94,7 @@ final class CooldownRenderer
 		}
 	}
 
-	boolean isVisible(Cooldown cooldown, long nowNanos)
+	boolean isVisible(CooldownView cooldown, long nowNanos)
 	{
 		if (cooldown.isActive())
 		{
@@ -101,34 +105,71 @@ final class CooldownRenderer
 			return false;
 		}
 		double age = cooldown.getFinishedAgeSeconds(nowNanos);
-		return age >= 0 && (config.animationMode() == AnimationMode.PERMANENT
+		return age >= 0 && (config.readyStyle() != ReadyStyle.SINGLE_FLASH || age < FLASH_SECONDS)
+			&& (config.animationMode() == AnimationMode.PERMANENT
 			|| age < Math.max(1, config.animationDuration()));
 	}
 
-	private void drawAnimatedBorder(Graphics2D graphics, Rectangle bounds, Shape itemOutline, long nowNanos,
-		double opacity)
+	private void drawReadyIndicator(Graphics2D graphics, Rectangle bounds, Shape itemOutline, long nowNanos,
+		double age, double opacity)
 	{
-		int width = Math.max(1, Math.min(6, config.animationBorderWidth()));
-		Shape border;
-		if (config.animationBorderStyle() == BorderStyle.ITEM_OUTLINE)
+		ReadyStyle style = config.readyStyle();
+		if (style == ReadyStyle.CORNER_MARKER)
 		{
-			if (itemOutline == null)
-			{
-				return;
-			}
-			border = itemOutline;
+			drawCornerMarker(graphics, bounds, opacity);
+			return;
 		}
-		else
+		int width = Math.max(1, Math.min(6, config.animationBorderWidth()));
+		Shape border = readyBorder(bounds, itemOutline, width);
+		if (border == null)
 		{
-			double inset = (width + 3) / 2.0 + 0.5;
-			if (bounds.width <= inset * 2 || bounds.height <= inset * 2)
-			{
-				return;
-			}
-			border = new RoundRectangle2D.Double(inset, inset,
-				bounds.width - inset * 2, bounds.height - inset * 2, 5, 5);
+			return;
 		}
 		graphics.translate(bounds.x, bounds.y);
+		switch (style)
+		{
+			case STEADY_OUTLINE:
+				drawSteadyOutline(graphics, border, width, opacity);
+				break;
+			case SOFT_GLOW:
+				drawGlow(graphics, border, width, opacity);
+				break;
+			case BREATHING_GLOW:
+				double breath = 0.35 + 0.65 * (0.5 + 0.5 * Math.cos(age * Math.PI * 2 / 1.8));
+				drawGlow(graphics, border, width, opacity * breath);
+				break;
+			case SINGLE_FLASH:
+				drawFlash(graphics, border, width, opacity, age);
+				break;
+			case FLASH_THEN_STEADY:
+				drawSteadyOutline(graphics, border, width, opacity);
+				drawFlash(graphics, border, width, opacity, age);
+				break;
+			case ANIMATED_BORDER:
+			default:
+				drawAnimatedBorder(graphics, border, width, nowNanos, opacity);
+				break;
+		}
+	}
+
+	private Shape readyBorder(Rectangle bounds, Shape itemOutline, int width)
+	{
+		if (config.animationBorderStyle() == BorderStyle.ITEM_OUTLINE)
+		{
+			return itemOutline;
+		}
+		double inset = (width + 3) / 2.0 + 0.5;
+		if (bounds.width <= inset * 2 || bounds.height <= inset * 2)
+		{
+			return null;
+		}
+		return new RoundRectangle2D.Double(inset, inset,
+			bounds.width - inset * 2, bounds.height - inset * 2, 5, 5);
+	}
+
+	private void drawAnimatedBorder(Graphics2D graphics, Shape border, int width, long nowNanos,
+		double opacity)
+	{
 		double phase = Math.floorMod(nowNanos, 1_200_000_000L) / 1_200_000_000.0;
 		Color color = config.animationColor();
 		double pulse = 0.65 + 0.35 * Math.sin(phase * Math.PI * 2);
@@ -147,6 +188,54 @@ final class CooldownRenderer
 			new float[]{5, 12}, (float) (phase * 17)));
 		graphics.setColor(withOpacity(color, opacity * pulse));
 		graphics.draw(border);
+	}
+
+	private void drawSteadyOutline(Graphics2D graphics, Shape border, int width, double opacity)
+	{
+		strokeBorder(graphics, border, width, opacity);
+	}
+
+	private void drawGlow(Graphics2D graphics, Shape border, int width, double opacity)
+	{
+		strokeBorder(graphics, border, width + 6, opacity * 0.055);
+		strokeBorder(graphics, border, width + 3, opacity * 0.12);
+		strokeBorder(graphics, border, width, opacity * 0.38);
+	}
+
+	private void drawFlash(Graphics2D graphics, Shape border, int width, double opacity, double age)
+	{
+		if (age >= FLASH_SECONDS)
+		{
+			return;
+		}
+		double fade = 1 - Math.max(0, age) / FLASH_SECONDS;
+		double flashOpacity = opacity * fade * fade;
+		strokeBorder(graphics, border, width + 8, flashOpacity * 0.1);
+		strokeBorder(graphics, border, width + 4, flashOpacity * 0.25);
+		strokeBorder(graphics, border, width, flashOpacity);
+	}
+
+	private void strokeBorder(Graphics2D graphics, Shape border, int width, double opacity)
+	{
+		graphics.setStroke(new BasicStroke(width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		graphics.setColor(withOpacity(config.animationColor(), opacity));
+		graphics.draw(border);
+	}
+
+	private void drawCornerMarker(Graphics2D graphics, Rectangle bounds, double opacity)
+	{
+		double diameter = Math.min(5, Math.min(bounds.width, bounds.height) - 2);
+		if (diameter <= 0)
+		{
+			return;
+		}
+		Shape marker = new Ellipse2D.Double(bounds.x + bounds.width - diameter - 2,
+			bounds.y + bounds.height - diameter - 2, diameter, diameter);
+		graphics.setStroke(new BasicStroke(2));
+		graphics.setColor(withOpacity(Color.BLACK, opacity * 0.85));
+		graphics.draw(marker);
+		graphics.setColor(withOpacity(config.animationColor(), opacity));
+		graphics.fill(marker);
 	}
 
 	private static Color withOpacity(Color color, double opacity)
