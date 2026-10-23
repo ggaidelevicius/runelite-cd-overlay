@@ -12,6 +12,7 @@ A RuneLite plugin that draws World of Warcraft-style cooldown sweeps and countdo
 - **Timer**, **circular sweep**, or **item fill**, with an optional countdown over either progress style. The circle clears clockwise; the item fill reveals the original icon colours from bottom to top.
 - An independent checkbox for every supported item family, plus progress opacity and timer color settings.
 - One optional **Show ready indicator** setting, with seven visual styles and a live super combat potion preview.
+- Optional protection against accidental re-dosing, with a configurable grace window and deliberate overrides.
 
 Search for **Cooldown Overlays** in RuneLite's plugin settings. All supported item families are enabled by default. Timers are tracked even while their individual checkboxes are off, so switching a checkbox back on preserves the timer.
 
@@ -40,6 +41,14 @@ Under **Ready indicator**, enable **Show ready indicator**, then choose **Ready 
 **Border style** defaults to **Item outline**, which follows the visible sprite. Choose **Inventory slot** for a border around the rectangular tile. **Border width** controls the main stroke from **1–6 pixels**, with a default of **1 pixel**. Border and glow styles use these settings; the corner marker has its own fixed position. An unavailable item silhouette leaves a border hidden until the sprite is available.
 
 Ready indicators are off by default. They appear only when a cooldown is ready, a fixed potion effect has expired, or an ordinary combat stat falls below its configured level and a dose would improve it. The colour, duration, style, and width remain configurable. Signals respect interface clipping and do not alter click targets. Already-ready items can show a signal after the first valid server sample. Hidden inventory tabs do not pause or replay an old duration. Existing enablement, colour, duration, and border preferences are preserved.
+
+### Re-dose protection
+
+Under **Re-dose protection**, enable **Prevent accidental re-dosing** to replace an inventory item's left-click use with an inert **Wait** entry while its known timer is active. This is off by default and respects each item family's checkbox. **Allow re-dose within** permits normal use during the final **0–60 seconds**, defaulting to **15 seconds**. Right-click retains the original use option, and holding **Shift** bypasses protection while preserving your normal Shift-click action.
+
+Ordinary combat potions reuse the configured stat targets: **Strength below 110** protects against re-dosing at 110 or above and allows a dose at 109 if it would improve Strength. Protection leaves clicks available when a timer is unknown, stale, or unavailable. It does not block food, Sanfew serum, moonlight potions, silk dressing, blessed crystal scarabs, Scarred scraps, or barbarian mixes. Stamina and extended stamina remain usable below 100% run energy, and divine potions remain usable when a relevant stat has drained below their full boost.
+
+Protection follows confirmed game state; it does not debounce rapid clicks before the server confirms a dose. Server timers remain authoritative, and this feature does not automate drinking.
 
 ### Settings preview
 
@@ -78,7 +87,7 @@ On macOS, the `run` task supplies the Java module exports required by RuneLite's
 
 The bundled development-client JAR carries the equivalent `Add-Exports` manifest attribute for `java -jar` launches. Missing these exports on newer JDKs causes an `IllegalAccessError` involving `OSXFullScreenAdapter` during startup.
 
-The ordinary plugin artifact is `build/libs/cooldown-overlays-1.0.3.jar`. For a bundled development-client JAR, use `./gradle-local shadowJar`. A standalone plugin JAR is not a drop-in installer for the normal client: local testing uses the development launcher, and distribution through the Plugin Hub requires a separate submission and review. See RuneLite's [Plugin Hub development guide](https://github.com/runelite/plugin-hub#creating-new-plugins).
+The ordinary plugin artifact is `build/libs/cooldown-overlays-1.0.4.jar`. For a bundled development-client JAR, use `./gradle-local shadowJar`. A standalone plugin JAR is not a drop-in installer for the normal client: local testing uses the development launcher, and distribution through the Plugin Hub requires a separate submission and review. See RuneLite's [Plugin Hub development guide](https://github.com/runelite/plugin-hub#creating-new-plugins).
 
 ## Timing behavior
 
@@ -119,6 +128,7 @@ Automated tests exercise the timer state and renderer without launching RuneLite
 12. In ToA, apply silk dressing and crack a blessed crystal scarab. Confirm 60-second and 24-second timers, refresh each effect, and check death, logout, and world-hop cancellation. Failed uses and player chat must not start a timer.
 
 13. Open **Show preview**, confirm the super combat potion reaches ready after ten seconds, and replay it with **Restart preview**. Change visual settings during the countdown and after it finishes, then close the window and disable the plugin. Reopen it to verify a fresh countdown and no leftover animation.
+14. Enable **Prevent accidental re-dosing**, use a supported potion, and verify its left-click becomes **Wait** outside the grace window. Confirm right-click use and your normal Shift-click action still work, then check expiry, the grace window, disabled item families, and unknown timers. Check an ordinary potion at and below its stat target, stamina below 100% run energy, a divine potion after a stat drain, and the excluded healing or restoration items. Disable protection and verify normal left-click use returns.
 
 No game input or item use is automated by this plugin.
 

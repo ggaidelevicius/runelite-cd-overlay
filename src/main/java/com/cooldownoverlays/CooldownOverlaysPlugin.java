@@ -9,6 +9,7 @@ import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -53,6 +54,8 @@ public class CooldownOverlaysPlugin extends Plugin
 	private ItemOutlineCache itemOutlines;
 	@Inject
 	private CooldownPreview preview;
+	@Inject
+	private RepotProtection repotProtection;
 	private volatile boolean running;
 	// Client-thread state: a queued startup callback must not replace a newer server sample.
 	private boolean sampled;
@@ -118,6 +121,16 @@ public class CooldownOverlaysPlugin extends Plugin
 		}
 	}
 
+	@Subscribe(priority = -1)
+	public void onPostMenuSort(PostMenuSort event)
+	{
+		// Run after ordinary menu swaps so a configured Drop/Use remains intact.
+		if (running)
+		{
+			repotProtection.updateMenu(System.nanoTime());
+		}
+	}
+
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
@@ -148,6 +161,7 @@ public class CooldownOverlaysPlugin extends Plugin
 		if (running && client.getLocalPlayer() != null && event.getActor() == client.getLocalPlayer())
 		{
 			potionTimers.clearOnDeath();
+			repotProtection.clear();
 		}
 	}
 
@@ -203,6 +217,7 @@ public class CooldownOverlaysPlugin extends Plugin
 		tracker.tick(heartValue(), nowNanos);
 		potionTimers.tick(client, nowNanos);
 		boostPotionTimers.tick(client, config, nowNanos);
+		repotProtection.sample(nowNanos);
 		sampled = true;
 	}
 
@@ -211,6 +226,7 @@ public class CooldownOverlaysPlugin extends Plugin
 		tracker.clear();
 		potionTimers.clear();
 		boostPotionTimers.clear();
+		repotProtection.clear();
 		sampled = false;
 	}
 

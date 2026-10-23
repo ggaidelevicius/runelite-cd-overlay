@@ -49,6 +49,13 @@ public interface CooldownOverlaysConfig extends Config
 	String animationsSection = "animations";
 
 	@ConfigSection(
+		name = "Re-dose protection",
+		description = "Prevent accidental left-click re-dosing while keeping manual overrides available",
+		position = 6
+	)
+	String repotProtectionSection = "repotProtection";
+
+	@ConfigSection(
 		name = "Raid potions",
 		description = "Choose which raid supplies show their remaining effect duration",
 		position = 20
@@ -99,6 +106,32 @@ public interface CooldownOverlaysConfig extends Config
 	default boolean showPreview()
 	{
 		return false;
+	}
+
+	@ConfigItem(
+		keyName = "preventAccidentalRedosing",
+		name = "Prevent accidental re-dosing",
+		description = "Replace left-click use with Wait while an enabled item's known timer is active. Right-click use and holding Shift bypass this protection. Healing and restoration cases remain available.",
+		position = 0,
+		section = repotProtectionSection
+	)
+	default boolean preventAccidentalRedosing()
+	{
+		return false;
+	}
+
+	@Range(min = 0, max = 60)
+	@Units(Units.SECONDS)
+	@ConfigItem(
+		keyName = "repotGraceSeconds",
+		name = "Allow re-dose within",
+		description = "Allow normal left-click use when this many seconds or less remain on the timer; 0 waits for expiry",
+		position = 1,
+		section = repotProtectionSection
+	)
+	default int repotGraceSeconds()
+	{
+		return 15;
 	}
 
 	@ConfigItem(

@@ -43,6 +43,9 @@ public class ConsumableIntegrationTest
 		inject("potionTimers", timers);
 		inject("tracker", new CooldownTracker());
 		inject("boostPotionTimers", new BoostPotionTimers());
+		CooldownOverlaysConfig config = new CooldownOverlaysConfig() {};
+		inject("repotProtection", new RepotProtection(client, config,
+			new RepotProtectionPolicy(client, config, new CooldownTracker(), timers, new BoostPotionTimers())));
 		inject("running", true);
 	}
 
