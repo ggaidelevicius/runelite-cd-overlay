@@ -3,6 +3,8 @@ package com.cooldownoverlays;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class BoostDecayClockTest
 {
@@ -144,5 +146,42 @@ public class BoostDecayClockTest
 		clock.observeDecay(20);
 		assertEquals(-1, clock.ticksToNextDecay(19, false));
 		assertEquals(-1, clock.ticksToNextDecay(20, true));
+	}
+
+	@Test
+	public void expectedDecayCanBeMatchedBeforeTheDeadlineExpires()
+	{
+		assertFalse(clock.isExpectedDecay(100, false));
+		clock.observeDecay(20);
+		assertFalse(clock.isExpectedDecay(119, false));
+		assertTrue(clock.isExpectedDecay(120, false));
+		assertFalse(clock.isExpectedDecay(121, false));
+		assertEquals(-1, clock.ticksToNextDecay(120, false));
+		assertFalse(clock.isExpectedDecay(120, false));
+	}
+
+	@Test
+	public void preserveHistoryDeterminesWhichDeadlineMatches()
+	{
+		clock.observeDecay(0);
+		assertEquals(150, clock.ticksToNextDecay(0, true));
+		assertFalse(clock.isExpectedDecay(100, true));
+		assertTrue(clock.isExpectedDecay(100, false));
+		assertEquals(50, clock.ticksToNextDecay(100, true));
+		assertFalse(clock.isExpectedDecay(124, false));
+		assertTrue(clock.isExpectedDecay(125, false));
+		assertTrue(clock.isExpectedDecay(150, true));
+	}
+
+	@Test
+	public void matchingDoesNotInventPreserveQualificationOrExtendAnExpiredCycle()
+	{
+		clock.observeDecay(0);
+		assertFalse(clock.isExpectedDecay(74, true));
+		// A query alone cannot qualify Preserve; it must be observed on a game tick.
+		assertTrue(clock.isExpectedDecay(100, true));
+		assertFalse(clock.isExpectedDecay(125, true));
+		assertFalse(clock.isExpectedDecay(150, true));
+		assertFalse(clock.isExpectedDecay(-1, false));
 	}
 }

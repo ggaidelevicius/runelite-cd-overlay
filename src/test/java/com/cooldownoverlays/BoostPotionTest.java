@@ -70,6 +70,33 @@ public class BoostPotionTest
 	}
 
 	@Test
+	public void everyLmsSuperCombatDoseBoostsOnlyAttackAndStrength()
+	{
+		assertFamily(BoostPotion.LMS_SUPER_COMBAT,
+			ItemID.BR_4DOSE2COMBAT, ItemID.BR_3DOSE2COMBAT, ItemID.BR_2DOSE2COMBAT, ItemID.BR_1DOSE2COMBAT);
+		assertArrayEquals(new Skill[]{Skill.ATTACK, Skill.STRENGTH}, BoostPotion.LMS_SUPER_COMBAT.getSkills());
+		assertEquals(118, BoostPotion.LMS_SUPER_COMBAT.getBoostedLevel(Skill.ATTACK, 99));
+		assertEquals(118, BoostPotion.LMS_SUPER_COMBAT.getBoostedLevel(Skill.STRENGTH, 99));
+		assertEquals(99, BoostPotion.LMS_SUPER_COMBAT.getBoostedLevel(Skill.DEFENCE, 99));
+		assertEquals(26, BoostPotion.LMS_SUPER_COMBAT.getBoostedLevel(Skill.ATTACK, 19));
+		assertEquals(28, BoostPotion.LMS_SUPER_COMBAT.getBoostedLevel(Skill.STRENGTH, 20));
+	}
+
+	@Test
+	public void lmsSuperCombatSharesTheExistingSuperCombatSetting()
+	{
+		CooldownOverlaysConfig config = new CooldownOverlaysConfig()
+		{
+			@Override public boolean superCombatPotion() { return false; }
+		};
+		assertFalse(BoostPotion.LMS_SUPER_COMBAT.isEnabled(config));
+		assertFalse(BoostPotion.SUPER_COMBAT.isEnabled(config));
+		assertTrue(BoostPotion.SUPER_ATTACK.isEnabled(config));
+		assertTrue(BoostPotion.SUPER_STRENGTH.isEnabled(config));
+		assertTrue(BoostPotion.RANGING.isEnabled(config));
+	}
+
+	@Test
 	public void meleeBoostCapsUseFlooredBaseLevelAndPotionStrength()
 	{
 		assertEquals(111, BoostPotion.ATTACK.getBoostedLevel(Skill.ATTACK, 99));

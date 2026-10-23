@@ -334,7 +334,7 @@ public interface CooldownOverlaysConfig extends Config
 	}
 
 	@ConfigItem(keyName = "superCombatPotion", name = "Super combat",
-		description = "Show time until Attack, Strength, or Defence falls below its selected level",
+		description = "Show time until a boosted combat stat falls below its selected level; LMS potions affect Attack and Strength only",
 		position = 12, section = boostPotionsSection)
 	default boolean superCombatPotion()
 	{

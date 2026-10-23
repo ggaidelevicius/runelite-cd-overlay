@@ -288,18 +288,25 @@ public class RepotProtectionPolicyTest
 	public void protectionUsesTheExistingDecayEstimateAndAbsoluteTarget()
 	{
 		tick = 99;
-		boosted.put(Skill.STRENGTH, 111);
-		boosts.tick(client, config, NOW);
-		assertFalse(policy.shouldProtect(ItemID._4DOSE2STRENGTH, NOW));
+		boosted.put(Skill.STRENGTH, 112);
+		boosts.tick(client, config, NOW + tick * Cooldown.TICK_NANOS);
+		assertFalse(policy.shouldProtect(ItemID._4DOSE2STRENGTH, NOW + tick * Cooldown.TICK_NANOS));
 		tick = 100;
+		boosted.put(Skill.STRENGTH, 111);
+		boosts.tick(client, config, NOW + tick * Cooldown.TICK_NANOS);
+		assertFalse(policy.shouldProtect(ItemID._4DOSE2STRENGTH, NOW + tick * Cooldown.TICK_NANOS));
+		tick = 199;
+		boosts.tick(client, config, NOW + tick * Cooldown.TICK_NANOS);
+		tick = 200;
 		boosted.put(Skill.STRENGTH, 110);
-		boosts.tick(client, config, NOW + Cooldown.TICK_NANOS);
-		assertTrue(policy.shouldProtect(ItemID._4DOSE2STRENGTH, NOW + Cooldown.TICK_NANOS));
+		long confirmedNow = NOW + tick * Cooldown.TICK_NANOS;
+		boosts.tick(client, config, confirmedNow);
+		assertTrue(policy.shouldProtect(ItemID._4DOSE2STRENGTH, confirmedNow));
 		settings.put("repotGraceSeconds", 60);
-		assertFalse(policy.shouldProtect(ItemID._4DOSE2STRENGTH, NOW + Cooldown.TICK_NANOS));
+		assertFalse(policy.shouldProtect(ItemID._4DOSE2STRENGTH, confirmedNow));
 		settings.put("repotGraceSeconds", 15);
 		boosted.put(Skill.STRENGTH, 109);
-		assertFalse(policy.shouldProtect(ItemID._4DOSE2STRENGTH, NOW + Cooldown.TICK_NANOS));
+		assertFalse(policy.shouldProtect(ItemID._4DOSE2STRENGTH, confirmedNow));
 	}
 
 	@Test

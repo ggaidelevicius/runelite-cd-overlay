@@ -21,6 +21,7 @@ final class BoostPotionTimers
 	private final Map<Skill, Integer> previousBoosted = new EnumMap<>(Skill.class);
 	private final Set<Skill> previousProtected = EnumSet.noneOf(Skill.class);
 	private final BoostDecayClock decayClock = new BoostDecayClock();
+	private boolean decayConfirmed;
 	private final Map<Skill, Integer> previousThresholds = new EnumMap<>(Skill.class);
 	private boolean previousPreserve;
 
@@ -54,7 +55,15 @@ final class BoostPotionTimers
 	void tick(int tick, Map<Skill, Integer> base, Map<Skill, Integer> boosted,
 		Set<Skill> protectedSkills, boolean preserve, Map<Skill, Integer> thresholds, long nowNanos)
 	{
+		// A single level can also be removed by an opponent. Keep the first
+		// observation tentative until another decrease confirms its cadence.
+		boolean expectedDecay = decayClock.isExpectedDecay(tick, preserve);
 		int nextDecay = decayClock.ticksToNextDecay(tick, preserve);
+		if (nextDecay == -1)
+		{
+			decayConfirmed = false;
+		}
+		boolean observedDecay = false;
 		for (Skill skill : SKILLS)
 		{
 			int level = base.getOrDefault(skill, 0);
@@ -63,15 +72,21 @@ final class BoostPotionTimers
 			if (level > 0 && boosted.containsKey(skill)
 				&& !protectedSkills.contains(skill) && !previousProtected.contains(skill)
 				&& previous != null && previousBase.getOrDefault(skill, 0) == level
-				&& previous > level && current >= level && current == previous - 1
-				&& (nextDecay == -1 || nextDecay <= 2))
+				&& previous > level && current >= level && current == previous - 1)
 			{
-				// Restrict later observations to the expected window, reducing false phase
-				// changes from one-level enemy drains. The first observation is an estimate.
-				decayClock.observeDecay(tick);
+				observedDecay = true;
 			}
 		}
-		nextDecay = decayClock.ticksToNextDecay(tick, preserve);
+		if (observedDecay && (expectedDecay || !decayConfirmed))
+		{
+			// Several skills decreasing in one server batch are one observation.
+			// Off-cadence drains cannot move a confirmed phase; while learning,
+			// they replace the candidate without exposing a numerical prediction.
+			decayConfirmed = expectedDecay;
+			decayClock.observeDecay(tick);
+		}
+		int candidateNextDecay = decayClock.ticksToNextDecay(tick, preserve);
+		nextDecay = decayConfirmed ? candidateNextDecay : -1;
 		for (BoostPotion potion : BoostPotion.values())
 		{
 			Cooldown timer = timers.get(potion);
@@ -156,6 +171,7 @@ final class BoostPotionTimers
 		previousBoosted.clear();
 		previousProtected.clear();
 		decayClock.clear();
+		decayConfirmed = false;
 		previousThresholds.clear();
 		previousPreserve = false;
 	}

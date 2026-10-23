@@ -111,11 +111,16 @@ public class BoostPotionClientTest
 	public void preserveVarbitExtendsLearnedDecayEstimate()
 	{
 		varbits.put(VarbitID.PRAYER_PRESERVE, 1);
-		levels.put(Skill.ATTACK, 119);
+		levels.put(Skill.ATTACK, 120);
 		timers.tick(client, config, 0);
-		levels.put(Skill.ATTACK, 118);
+		levels.put(Skill.ATTACK, 119);
 		tick = 100;
 		timers.tick(client, config, tick * Cooldown.TICK_NANOS);
+		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
+		levels.put(Skill.ATTACK, 118);
+		tick = 250;
+		timers.tick(client, config, tick * Cooldown.TICK_NANOS);
+		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
 		assertEquals(1440, timers.get(BoostPotion.SUPER_ATTACK)
 			.getRemainingSeconds(tick * Cooldown.TICK_NANOS), 0.00001);
 	}
@@ -180,10 +185,14 @@ public class BoostPotionClientTest
 	{
 		varbits.put(VarbitID.MOONLIGHT_POTION_TIME, 500);
 		varbits.put(VarbitID.DIVINEDEFENCE_POTION_TIME, 500);
-		levels.put(Skill.DEFENCE, 119);
+		levels.put(Skill.DEFENCE, 120);
 		timers.tick(client, config, 0);
-		levels.put(Skill.DEFENCE, 118);
+		levels.put(Skill.DEFENCE, 119);
 		tick = 100;
+		timers.tick(client, config, tick * Cooldown.TICK_NANOS);
+		assertFalse(timers.get(BoostPotion.SUPER_DEFENCE).isKnown());
+		levels.put(Skill.DEFENCE, 118);
+		tick = 200;
 		timers.tick(client, config, tick * Cooldown.TICK_NANOS);
 		assertTrue(timers.get(BoostPotion.SUPER_DEFENCE).isKnown());
 		assertEquals(960, timers.get(BoostPotion.SUPER_DEFENCE)

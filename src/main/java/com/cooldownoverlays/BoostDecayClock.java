@@ -54,6 +54,16 @@ final class BoostDecayClock
 		preserveBeenActive = false;
 	}
 
+	/** Check an observation before ticksToNextDecay expires a cycle at its deadline. */
+	boolean isExpectedDecay(int tick, boolean preserveActive)
+	{
+		if (lastDecayTick == -1 || tick < lastDecayTick || tick > expectedDecayTick)
+		{
+			return false;
+		}
+		return tick == lastDecayTick + intervalAt(tick, preserveActive);
+	}
+
 	int ticksToNextDecay(int tick, boolean preserveActive)
 	{
 		if (lastDecayTick == -1)
@@ -69,17 +79,8 @@ final class BoostDecayClock
 			return -1;
 		}
 
-		int interval;
-		if ((preserveActive && (elapsed < 75 || preserveBeenActive)) || elapsed > 125)
-		{
-			preserveBeenActive = true;
-			interval = 150;
-		}
-		else
-		{
-			preserveBeenActive = false;
-			interval = elapsed > 100 ? 125 : 100;
-		}
+		int interval = intervalAt(tick, preserveActive);
+		preserveBeenActive = interval == 150;
 
 		if (interval <= elapsed)
 		{
@@ -88,5 +89,15 @@ final class BoostDecayClock
 		}
 		expectedDecayTick = lastDecayTick + interval;
 		return interval - elapsed;
+	}
+
+	private int intervalAt(int tick, boolean preserveActive)
+	{
+		int elapsed = tick - lastDecayTick;
+		if ((preserveActive && (elapsed < 75 || preserveBeenActive)) || elapsed > 125)
+		{
+			return 150;
+		}
+		return elapsed > 100 ? 125 : 100;
 	}
 }

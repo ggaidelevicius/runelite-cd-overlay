@@ -38,52 +38,62 @@ public class BoostPotionTimersTest
 	}
 
 	@Test
-	public void observedSingleLevelDecayPredictsTimeToThreshold()
+	public void cadenceConfirmedSingleLevelDecaysPredictTimeToThreshold()
 	{
-		tick(99, levels(119, 99, 99, 99, 99), Set.of(), false, 103);
-		tick(100, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(99, levels(120, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(100, levels(119, 99, 99, 99, 99), Set.of(), false, 103);
+		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
+		tick(199, levels(119, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(200, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
 
 		Cooldown cooldown = timers.get(BoostPotion.SUPER_ATTACK);
 		assertTrue(cooldown.isKnown());
 		assertFalse(cooldown.isReady());
 		// Level 118 drops below 103 after sixteen further one-minute decays.
-		assertEquals(960, cooldown.getRemainingSeconds(atTick(100)), DELTA);
+		assertEquals(960, cooldown.getRemainingSeconds(atTick(200)), DELTA);
 	}
 
 	@Test
 	public void drinkingAgainRetainsTheSharedDecayPhase()
 	{
-		tick(99, levels(109, 99, 99, 99, 99), Set.of(), false, 103);
-		tick(100, levels(108, 99, 99, 99, 99), Set.of(), false, 103);
-		tick(110, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(99, levels(110, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(100, levels(109, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(199, levels(109, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(200, levels(108, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(210, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
 
 		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
-		// Next decay is tick 200, rather than one minute after drinking at tick 110.
-		assertEquals(954, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(110)), DELTA);
+		// Next decay is tick 300, rather than one minute after drinking at tick 210.
+		assertEquals(954, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(210)), DELTA);
 	}
 
 	@Test
 	public void preserveUsesNinetySecondDecayIntervals()
 	{
-		tick(99, levels(119, 99, 99, 99, 99), Set.of(), true, 103);
-		tick(100, levels(118, 99, 99, 99, 99), Set.of(), true, 103);
+		tick(99, levels(120, 99, 99, 99, 99), Set.of(), true, 103);
+		tick(100, levels(119, 99, 99, 99, 99), Set.of(), true, 103);
+		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
+		tick(249, levels(119, 99, 99, 99, 99), Set.of(), true, 103);
+		tick(250, levels(118, 99, 99, 99, 99), Set.of(), true, 103);
 
 		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
-		assertEquals(1440, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(100)), DELTA);
+		assertEquals(1440, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(250)), DELTA);
 	}
 
 	@Test
 	public void thresholdChangesRecalculateTimerAndReadiness()
 	{
-		tick(99, levels(109, 99, 99, 99, 99), Set.of(), false, 103);
-		tick(100, levels(108, 99, 99, 99, 99), Set.of(), false, 103);
-		assertEquals(360, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(100)), DELTA);
+		tick(99, levels(110, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(100, levels(109, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(199, levels(109, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(200, levels(108, 99, 99, 99, 99), Set.of(), false, 103);
+		assertEquals(360, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(200)), DELTA);
 
-		tick(101, levels(108, 99, 99, 99, 99), Set.of(), false, 108);
-		assertEquals(59.4, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(101)), DELTA);
+		tick(201, levels(108, 99, 99, 99, 99), Set.of(), false, 108);
+		assertEquals(59.4, timers.get(BoostPotion.SUPER_ATTACK).getRemainingSeconds(atTick(201)), DELTA);
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isReady());
 
-		tick(102, levels(108, 99, 99, 99, 99), Set.of(), false, 109);
+		tick(202, levels(108, 99, 99, 99, 99), Set.of(), false, 109);
 		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isReady());
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isActive());
 	}
@@ -91,15 +101,17 @@ public class BoostPotionTimersTest
 	@Test
 	public void combinedPotionUsesFirstBeneficialSkillToReachThreshold()
 	{
-		tick(99, levels(104, 118, 118, 99, 99), Set.of(), false, 103);
-		tick(100, levels(103, 118, 118, 99, 99), Set.of(), false, 103);
+		tick(99, levels(105, 118, 118, 99, 99), Set.of(), false, 103);
+		tick(100, levels(104, 118, 118, 99, 99), Set.of(), false, 103);
+		tick(199, levels(104, 118, 118, 99, 99), Set.of(), false, 103);
+		tick(200, levels(103, 118, 118, 99, 99), Set.of(), false, 103);
 
-		assertEquals(60, timers.get(BoostPotion.SUPER_COMBAT).getRemainingSeconds(atTick(100)), DELTA);
+		assertEquals(60, timers.get(BoostPotion.SUPER_COMBAT).getRemainingSeconds(atTick(200)), DELTA);
 		assertFalse(timers.get(BoostPotion.SUPER_COMBAT).isReady());
-		tick(199, levels(103, 118, 118, 99, 99), Set.of(), false, 103);
+		tick(299, levels(103, 118, 118, 99, 99), Set.of(), false, 103);
 		assertFalse(timers.get(BoostPotion.SUPER_COMBAT).isReady());
 
-		tick(200, levels(102, 117, 117, 99, 99), Set.of(), false, 103);
+		tick(300, levels(102, 117, 117, 99, 99), Set.of(), false, 103);
 		assertTrue(timers.get(BoostPotion.SUPER_COMBAT).isReady());
 	}
 
@@ -123,6 +135,8 @@ public class BoostPotionTimersTest
 	{
 		tick(99, levels(119, 118, 99, 99, 99), Set.of(Skill.ATTACK), false, 103);
 		tick(100, levels(118, 118, 99, 99, 99), Set.of(Skill.ATTACK), false, 103);
+		tick(199, levels(118, 118, 99, 99, 99), Set.of(Skill.ATTACK), false, 103);
+		tick(200, levels(117, 118, 99, 99, 99), Set.of(Skill.ATTACK), false, 103);
 
 		assertFalse(timers.get(BoostPotion.SUPER_STRENGTH).isKnown());
 		assertTrue(timers.get(BoostPotion.SUPER_STRENGTH).isActive());
@@ -150,19 +164,24 @@ public class BoostPotionTimersTest
 
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isReady());
+		tick(200, levels(116, 99, 99, 99, 99), Set.of(), false, 103);
+		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
 	}
 
 	@Test
 	public void countdownCannotDeclareReadyBeforeObservedThresholdCrossing()
 	{
-		tick(99, levels(104, 99, 99, 99, 99), Set.of(), false, 103);
-		tick(100, levels(103, 99, 99, 99, 99), Set.of(), false, 103);
-		tick(201, levels(103, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(99, levels(105, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(100, levels(104, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(199, levels(104, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(200, levels(103, 99, 99, 99, 99), Set.of(), false, 103);
+		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
+		tick(301, levels(103, 99, 99, 99, 99), Set.of(), false, 103);
 
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isReady());
 		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isActive());
 
-		tick(202, levels(102, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(302, levels(102, 99, 99, 99, 99), Set.of(), false, 103);
 		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isReady());
 	}
 
@@ -205,8 +224,10 @@ public class BoostPotionTimersTest
 	@Test
 	public void clearDiscardsReadinessAndLearnedPhase()
 	{
-		tick(99, levels(119, 99, 99, 99, 99), Set.of(), false, 103);
-		tick(100, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(99, levels(120, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(100, levels(119, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(199, levels(119, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(200, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
 		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
 		assertTrue(timers.get(BoostPotion.MAGIC).isReady());
 
@@ -217,7 +238,7 @@ public class BoostPotionTimersTest
 			assertFalse(potion.name(), timers.get(potion).isActive());
 		}
 
-		tick(101, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
+		tick(201, levels(118, 99, 99, 99, 99), Set.of(), false, 103);
 		assertTrue(timers.get(BoostPotion.SUPER_ATTACK).isActive());
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isKnown());
 	}
@@ -226,13 +247,15 @@ public class BoostPotionTimersTest
 	public void strengthBelow110WaitsAt110AndAnimatesAt109()
 	{
 		Map<Skill, Integer> targets = Map.of(Skill.STRENGTH, 110);
-		timers.tick(99, base, levels(99, 111, 99, 99, 99), Set.of(), false, targets, atTick(99));
-		timers.tick(100, base, levels(99, 110, 99, 99, 99), Set.of(), false, targets, atTick(100));
+		timers.tick(99, base, levels(99, 112, 99, 99, 99), Set.of(), false, targets, atTick(99));
+		timers.tick(100, base, levels(99, 111, 99, 99, 99), Set.of(), false, targets, atTick(100));
+		timers.tick(199, base, levels(99, 111, 99, 99, 99), Set.of(), false, targets, atTick(199));
+		timers.tick(200, base, levels(99, 110, 99, 99, 99), Set.of(), false, targets, atTick(200));
 		Cooldown cooldown = timers.get(BoostPotion.SUPER_STRENGTH);
 		assertFalse(cooldown.isReady());
-		assertEquals(60, cooldown.getRemainingSeconds(atTick(100)), DELTA);
+		assertEquals(60, cooldown.getRemainingSeconds(atTick(200)), DELTA);
 
-		timers.tick(200, base, levels(99, 109, 99, 99, 99), Set.of(), false, targets, atTick(200));
+		timers.tick(300, base, levels(99, 109, 99, 99, 99), Set.of(), false, targets, atTick(300));
 		assertTrue(cooldown.isReady());
 		assertFalse(cooldown.isActive());
 		assertTrue(timers.get(BoostPotion.SUPER_COMBAT).isReady());
@@ -244,14 +267,16 @@ public class BoostPotionTimersTest
 	public void eachSkillUsesItsOwnAbsoluteTarget()
 	{
 		Map<Skill, Integer> targets = levels(0, 110, 0, 105, 102);
-		timers.tick(99, base, levels(99, 111, 99, 104, 102), Set.of(), false, targets, atTick(99));
-		timers.tick(100, base, levels(99, 110, 99, 104, 102), Set.of(), false, targets, atTick(100));
+		timers.tick(99, base, levels(99, 112, 99, 104, 102), Set.of(), false, targets, atTick(99));
+		timers.tick(100, base, levels(99, 111, 99, 104, 102), Set.of(), false, targets, atTick(100));
+		timers.tick(199, base, levels(99, 111, 99, 104, 102), Set.of(), false, targets, atTick(199));
+		timers.tick(200, base, levels(99, 110, 99, 104, 102), Set.of(), false, targets, atTick(200));
 
-		assertEquals(60, timers.get(BoostPotion.SUPER_COMBAT).getRemainingSeconds(atTick(100)), DELTA);
+		assertEquals(60, timers.get(BoostPotion.SUPER_COMBAT).getRemainingSeconds(atTick(200)), DELTA);
 		assertTrue(timers.get(BoostPotion.RANGING).isReady());
 		assertTrue(timers.get(BoostPotion.BASTION).isReady());
 		assertFalse(timers.get(BoostPotion.MAGIC).isReady());
-		assertEquals(60, timers.get(BoostPotion.BATTLEMAGE).getRemainingSeconds(atTick(100)), DELTA);
+		assertEquals(60, timers.get(BoostPotion.BATTLEMAGE).getRemainingSeconds(atTick(200)), DELTA);
 		assertFalse(timers.get(BoostPotion.DEFENCE).isActive());
 		assertFalse(timers.get(BoostPotion.DEFENCE).isReady());
 	}
@@ -281,14 +306,16 @@ public class BoostPotionTimersTest
 	{
 		Map<Skill, Integer> targets = Map.of(Skill.STRENGTH, 90);
 		// Attack teaches the shared phase even though its target is disabled.
-		timers.tick(99, base, levels(111, 95, 99, 99, 99), Set.of(), false, targets, atTick(99));
-		timers.tick(100, base, levels(110, 95, 99, 99, 99), Set.of(), false, targets, atTick(100));
+		timers.tick(99, base, levels(112, 95, 99, 99, 99), Set.of(), false, targets, atTick(99));
+		timers.tick(100, base, levels(111, 95, 99, 99, 99), Set.of(), false, targets, atTick(100));
+		timers.tick(199, base, levels(111, 95, 99, 99, 99), Set.of(), false, targets, atTick(199));
+		timers.tick(200, base, levels(110, 95, 99, 99, 99), Set.of(), false, targets, atTick(200));
 		assertFalse(timers.get(BoostPotion.SUPER_STRENGTH).isActive());
 		assertFalse(timers.get(BoostPotion.SUPER_STRENGTH).isReady());
 
-		timers.tick(101, base, levels(110, 89, 99, 99, 99), Set.of(), false, targets, atTick(101));
+		timers.tick(201, base, levels(110, 89, 99, 99, 99), Set.of(), false, targets, atTick(201));
 		assertTrue(timers.get(BoostPotion.SUPER_STRENGTH).isReady());
-		timers.tick(102, base, levels(110, 90, 99, 99, 99), Set.of(), false, targets, atTick(102));
+		timers.tick(202, base, levels(110, 90, 99, 99, 99), Set.of(), false, targets, atTick(202));
 		assertFalse(timers.get(BoostPotion.SUPER_STRENGTH).isReady());
 		assertFalse(timers.get(BoostPotion.SUPER_STRENGTH).isActive());
 	}
@@ -297,12 +324,14 @@ public class BoostPotionTimersTest
 	public void thresholdAtBaseCannotNaturallyCrossButOneAboveCan()
 	{
 		Map<Skill, Integer> targets = levels(99, 100, 0, 0, 0);
-		timers.tick(99, base, levels(101, 101, 99, 99, 99), Set.of(), false, targets, atTick(99));
-		timers.tick(100, base, levels(100, 100, 99, 99, 99), Set.of(), false, targets, atTick(100));
+		timers.tick(99, base, levels(102, 102, 99, 99, 99), Set.of(), false, targets, atTick(99));
+		timers.tick(100, base, levels(101, 101, 99, 99, 99), Set.of(), false, targets, atTick(100));
+		timers.tick(199, base, levels(101, 101, 99, 99, 99), Set.of(), false, targets, atTick(199));
+		timers.tick(200, base, levels(100, 100, 99, 99, 99), Set.of(), false, targets, atTick(200));
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isActive());
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isReady());
-		assertEquals(60, timers.get(BoostPotion.SUPER_STRENGTH).getRemainingSeconds(atTick(100)), DELTA);
-		timers.tick(200, base, levels(99, 99, 99, 99, 99), Set.of(), false, targets, atTick(200));
+		assertEquals(60, timers.get(BoostPotion.SUPER_STRENGTH).getRemainingSeconds(atTick(200)), DELTA);
+		timers.tick(300, base, levels(99, 99, 99, 99, 99), Set.of(), false, targets, atTick(300));
 		assertFalse(timers.get(BoostPotion.SUPER_ATTACK).isReady());
 		assertTrue(timers.get(BoostPotion.SUPER_STRENGTH).isReady());
 	}

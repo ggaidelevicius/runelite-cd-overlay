@@ -36,6 +36,10 @@ enum BoostPotion
 	SUPER_COMBAT(CooldownOverlaysConfig::superCombatPotion,
 		new Boost[]{Boost.SUPER_ATTACK, Boost.SUPER_STRENGTH, Boost.SUPER_DEFENCE},
 		ItemID._4DOSE2COMBAT, ItemID._3DOSE2COMBAT, ItemID._2DOSE2COMBAT, ItemID._1DOSE2COMBAT),
+	// LMS super combat has no Defence boost, so that threshold cannot make it useful.
+	LMS_SUPER_COMBAT(CooldownOverlaysConfig::superCombatPotion,
+		new Boost[]{Boost.SUPER_ATTACK, Boost.SUPER_STRENGTH},
+		ItemID.BR_4DOSE2COMBAT, ItemID.BR_3DOSE2COMBAT, ItemID.BR_2DOSE2COMBAT, ItemID.BR_1DOSE2COMBAT),
 	RANGING(CooldownOverlaysConfig::rangingPotion, new Boost[]{Boost.RANGED},
 		ItemID._4DOSERANGERSPOTION, ItemID._3DOSERANGERSPOTION,
 		ItemID._2DOSERANGERSPOTION, ItemID._1DOSERANGERSPOTION,
