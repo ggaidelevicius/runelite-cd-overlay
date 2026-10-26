@@ -114,6 +114,7 @@ final class CooldownRenderer
 		double age, double opacity)
 	{
 		ReadyStyle style = config.readyStyle();
+		opacity *= Math.max(0, Math.min(100, config.animationOpacity())) / 100.0;
 		if (style == ReadyStyle.CORNER_MARKER)
 		{
 			drawCornerMarker(graphics, bounds, opacity);

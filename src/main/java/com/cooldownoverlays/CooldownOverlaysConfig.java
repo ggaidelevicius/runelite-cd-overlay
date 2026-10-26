@@ -222,6 +222,20 @@ public interface CooldownOverlaysConfig extends Config
 		return 1;
 	}
 
+	@Range(min = 0, max = 100)
+	@Units(Units.PERCENT)
+	@ConfigItem(
+		keyName = "animationOpacity",
+		name = "Outline opacity",
+		description = "Opacity of the ready outline, glow, or corner marker; 0 hides the ready signal",
+		position = 7,
+		section = animationsSection
+	)
+	default int animationOpacity()
+	{
+		return 100;
+	}
+
 	@Range(min = 0, max = 255)
 	@ConfigItem(
 		keyName = "attackThreshold", name = "Attack below",

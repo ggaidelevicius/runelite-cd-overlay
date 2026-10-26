@@ -71,6 +71,42 @@ public class CooldownPreviewPanelTest
 	}
 
 	@Test
+	public void outlineOpacityUpdatesReplayReadyWithoutRestartingTheCooldown() throws Exception
+	{
+		SwingUtilities.invokeAndWait(() ->
+		{
+			AtomicLong now = new AtomicLong();
+			PreviewConfig config = new PreviewConfig();
+			config.enabled = true;
+			CooldownPreviewPanel panel = panel(config, now);
+			try
+			{
+				now.set(3 * SECOND);
+				config.outlineOpacity = 40;
+				panel.refreshSettings();
+				assertEquals(7, panel.timeline().getRemainingSeconds(now.get()), 0);
+				now.set(10 * SECOND);
+				panel.refreshSettings();
+				BufferedImage transparent = paint(panel);
+				now.set(14 * SECOND);
+				panel.refreshSettings();
+				assertEquals("Ready: indicator finished", panel.stateText());
+				config.outlineOpacity = 75;
+				panel.refreshSettings();
+				assertTrue(panel.timeline().isReady());
+				assertEquals(0, panel.timeline().getFinishedAgeSeconds(now.get()), 0);
+				assertEquals("Ready", panel.stateText());
+				assertNotEquals("The preview must display the new outline opacity",
+					checksum(transparent), checksum(paint(panel)));
+			}
+			finally
+			{
+				panel.close();
+			}
+		});
+	}
+
+	@Test
 	public void displaySettingsRepaintWithoutReplayingReadyPhase() throws Exception
 	{
 		SwingUtilities.invokeAndWait(() ->
@@ -291,6 +327,7 @@ public class CooldownPreviewPanelTest
 		private Color color = Color.YELLOW;
 		private DisplayMode mode = DisplayMode.BOTH;
 		private int opacity = 60;
+		private int outlineOpacity = 100;
 		private Color timerColor = Color.WHITE;
 		private AnimationMode length = AnimationMode.TIMED;
 
@@ -299,6 +336,7 @@ public class CooldownPreviewPanelTest
 		@Override public Color animationColor() { return color; }
 		@Override public DisplayMode displayMode() { return mode; }
 		@Override public int circleOpacity() { return opacity; }
+		@Override public int animationOpacity() { return outlineOpacity; }
 		@Override public Color timerColor() { return timerColor; }
 		@Override public AnimationMode animationMode() { return length; }
 	}

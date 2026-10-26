@@ -123,7 +123,7 @@ final class CooldownPreviewPanel extends JPanel
 	{
 		return new Object[]{config.animateWhenReady(), config.readyStyle(), config.animationMode(),
 			config.animationDuration(), config.animationColor(), config.animationBorderStyle(),
-			config.animationBorderWidth()};
+			config.animationBorderWidth(), config.animationOpacity()};
 	}
 
 	void restart()

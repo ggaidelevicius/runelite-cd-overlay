@@ -175,7 +175,8 @@ public class CooldownOverlaysPlugin extends Plugin
 		preview.onConfigChanged();
 		if (event.getKey().equals("animateActivation") || event.getKey().equals("animationMode")
 			|| event.getKey().equals("animationDuration") || event.getKey().equals("animationBorderStyle")
-			|| event.getKey().equals("animationBorderWidth") || event.getKey().equals("readyStyle"))
+			|| event.getKey().equals("animationBorderWidth") || event.getKey().equals("readyStyle")
+			|| event.getKey().equals("animationOpacity"))
 		{
 			clientThread.invoke(() ->
 			{
