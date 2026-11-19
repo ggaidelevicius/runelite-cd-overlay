@@ -74,7 +74,9 @@ final class RepotProtectionPolicy
 				&& hasProtectedTime(potionTimers.get(family.getEffect()), nowNanos);
 		}
 		BoostPotion potion = BoostPotion.forItem(itemId);
-		return potion != null && potion.isEnabled(config) && hasConfiguredTarget(potion)
+		// The root also heals, restores stats, and cures poison and bleeds.
+		return potion != null && potion != BoostPotion.GUTHIXIAN_ROOT
+			&& potion.isEnabled(config) && hasConfiguredTarget(potion)
 			&& !canImproveStats(potion, true)
 			&& hasProtectedTime(boostPotionTimers.get(potion), nowNanos);
 	}

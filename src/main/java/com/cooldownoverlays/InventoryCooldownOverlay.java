@@ -56,13 +56,52 @@ final class InventoryCooldownOverlay extends WidgetItemOverlay
 		BoostPotion boostPotion = BoostPotion.forItem(itemId);
 		if (boostPotion != null && boostPotion.isEnabled(config))
 		{
-			render(graphics, widgetItem, boostPotionTimers.get(boostPotion));
+			Cooldown boost = boostPotionTimers.get(boostPotion);
+			if (boostPotion == BoostPotion.GUTHIXIAN_ROOT)
+			{
+				long nowNanos = System.nanoTime();
+				Cooldown stamina = potionTimers.get(PotionEffect.STAMINA);
+				render(graphics, widgetItem, rootCooldown(stamina, boost, nowNanos), nowNanos);
+			}
+			else
+			{
+				render(graphics, widgetItem, boost);
+			}
 		}
+	}
+
+	private Cooldown rootCooldown(Cooldown stamina, Cooldown boost, long nowNanos)
+	{
+		if (!renderer.isVisible(boost, nowNanos))
+		{
+			return stamina;
+		}
+		if (!renderer.isVisible(stamina, nowNanos))
+		{
+			return boost;
+		}
+		if (boost.isReady() && stamina.isReady())
+		{
+			return boost.getFinishedAgeSeconds(nowNanos) < stamina.getFinishedAgeSeconds(nowNanos) ? boost : stamina;
+		}
+		if (boost.isReady())
+		{
+			return boost;
+		}
+		if (stamina.isReady() || !boost.isKnown())
+		{
+			return stamina;
+		}
+		return boost.getRemainingSeconds(nowNanos) < stamina.getRemainingSeconds(nowNanos) ? boost : stamina;
 	}
 
 	private void render(Graphics2D graphics, WidgetItem widgetItem, Cooldown cooldown)
 	{
-		long nowNanos = System.nanoTime();
+		render(graphics, widgetItem, cooldown, System.nanoTime());
+	}
+
+	private void render(Graphics2D graphics, WidgetItem widgetItem, Cooldown cooldown, long nowNanos)
+	{
 		if (!renderer.isVisible(cooldown, nowNanos))
 		{
 			return;

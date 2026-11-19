@@ -840,4 +840,14 @@ public interface CooldownOverlaysConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = "guthixianRoot", name = "Guthixian root",
+		description = "Show stamina and combat boost reminders on the Fractured Archive Practice Mode supply",
+		position = 13, section = raidPotionsSection
+	)
+	default boolean guthixianRoot()
+	{
+		return true;
+	}
 }

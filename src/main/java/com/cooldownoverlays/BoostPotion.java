@@ -49,6 +49,9 @@ enum BoostPotion
 	MAGIC(CooldownOverlaysConfig::magicPotion, new Boost[]{Boost.MAGIC},
 		ItemID._4DOSE1MAGIC, ItemID._3DOSE1MAGIC, ItemID._2DOSE1MAGIC, ItemID._1DOSE1MAGIC,
 		ItemID.BRUTAL_2DOSE1MAGIC, ItemID.BRUTAL_1DOSE1MAGIC),
+	// TFA_GUTHIXIAN_ROOT in RuneLite's game values. Keep compatibility with older APIs.
+	GUTHIXIAN_ROOT(CooldownOverlaysConfig::guthixianRoot,
+		new Boost[]{Boost.SUPER_ATTACK, Boost.SUPER_STRENGTH, Boost.SUPER_DEFENCE, Boost.RANGED, Boost.MAGIC}, 35026),
 	BASTION(CooldownOverlaysConfig::bastionPotion, new Boost[]{Boost.RANGED, Boost.SUPER_DEFENCE},
 		ItemID._4DOSEBASTION, ItemID._3DOSEBASTION, ItemID._2DOSEBASTION, ItemID._1DOSEBASTION),
 	BATTLEMAGE(CooldownOverlaysConfig::battlemagePotion, new Boost[]{Boost.MAGIC, Boost.SUPER_DEFENCE},

@@ -55,6 +55,7 @@ public class InventoryCooldownOverlayTest
 		@Override public BorderStyle animationBorderStyle() { return style; }
 		@Override public boolean saturatedHeart() { return itemsEnabled; }
 		@Override public boolean staminaPotion() { return itemsEnabled; }
+		@Override public boolean guthixianRoot() { return itemsEnabled; }
 		@Override public boolean superStrengthPotion() { return itemsEnabled; }
 	};
 	private final InventoryCooldownOverlay overlay = new InventoryCooldownOverlay(client, config,
@@ -84,6 +85,25 @@ public class InventoryCooldownOverlayTest
 		spriteAvailable = false;
 		assertTrue(visiblePixels(render(ItemID.SATURATED_HEART, 1, null)) > 0);
 		assertEquals(0, spriteRequests);
+	}
+
+	@Test
+	public void rootShowsOneCountdownAndFallsBackWhenCombatTimingIsUnknown()
+	{
+		int root = 35026;
+		displayMode = DisplayMode.ITEM_FILL;
+		Cooldown stamina = potions.get(PotionEffect.STAMINA);
+		Cooldown boost = boosts.get(BoostPotion.GUTHIXIAN_ROOT);
+		stamina.start(80, 100, 0);
+		boost.start(20, 100, 0);
+		int combatPixels = visiblePixels(render(root, 1, null));
+		int staminaPixels = visiblePixels(render(ItemID._4DOSESTAMINA, 1, null));
+		assertTrue(combatPixels > 0 && combatPixels < staminaPixels);
+
+		boost.startUnknown(0);
+		assertEquals(staminaPixels, visiblePixels(render(root, 1, null)));
+		itemsEnabled = false;
+		assertEquals(0, visiblePixels(render(root, 1, null)));
 	}
 
 	@Test
